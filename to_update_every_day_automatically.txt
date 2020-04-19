@@ -1,0 +1,33 @@
+Pour chaque personne recensee dans la base, on voudrait effectuer automatiquement ces modifications de la base de donnees chaque jour:
+
+* si (etatSante = pas de symptome ou fievre) et (etatSurveillance n'est ni mort, ni hospitalise, ni gueri ?)  --> etatSurveillance devient quarantaine
+
+* si (etatSurveillance = 'quarantaine') et son etat de sante n'a pas empire depuis 15 jours --> etatSurveillance devient gueri, puis dater la fin de la derniere surveillance de ce patient. 
+pour verifier que son etat de sante n'a pas empire depuis 15 jours, il faut consulter tout l'historique des etats de sante de cette personne qui ont eu lieu depuis au plus 15 jours.
+La condition est verifiee ssi en comparant chaque paire d'etats de sante consecutifs, l'etat de sante n'a pas empire d'un etat au suivant. (Le nombre de comparaisons a effectuer est donc inferieur ou egal au nombre d'etats de sante de la personne - 1)
+
+* si (etatSurveillance = quarantaine) et (etatSante = fievre et problemes respiratoires) --> d'apres le sujet elle devrait etre hospitalisee (mais ou ? et comment faire si les hopitaux sont pleins ? Il semblerait que l'hospitalisation doive se faire manuellement)
+
+* Si la personne est hospitalisee et qu'elle n'a aucun symptome --> On date la fin de son hospitalisation (avec CURRENT_TIMESTAMP)
+
+
+
+manuel
+* liste des patients a contacter d'un departement (surveillance_departement.php ?)
+* modifier capacite maximale d'accueil d'un hopital
+* ajout d'un patient a surveiller
+* modification d'un patient (informations de contact, etat de sante, debut d'hospitalisation, relancer une surveillance, dater fin de surveillance, fin d'hospitalisation ?)
+
+automatique, front end
+* alerte hopital arrive a son taux de remplissage max
+
+stats
+On utiliserait un form HTML avec les entrees utilisateur suivantes :
+* departement : un select HTML pour selectionner dans la liste des departements; un checkbox pour selectionner le pays entier
+* etatSante : des checkboxes (a selection multiple) pour chaque etat de sante
+* genre : 3 checkboxes
+* contaminee : 2 checkboxes (oui et/ou non)
+* surveillance : checkboxes pour chaque etat de surveillance
+* date debut, date fin. heure non precisee
+output : On peut afficher le nombre de personnes recensees verifiant ces conditions (i.e. sa situation n'est associee a aucune checkbox non cochee) dans un tableau (un nombre pour chaque jour, toujours la meme heure, e.g. minuit) entre les deux dates donnees.
+On peut aussi avoir une ligne donnant le total de personnes qui verifient ces condition a un moment donnee dans l'intervalle de date donne. (nb: ce n'est pas la somme des lignes)
