@@ -13,7 +13,7 @@ include('includes/init.php');
   <meta name="description" content="">
   <meta name="author" content="">
 
-  <title>Société Elamron</title>
+  <title>Application COVID-19</title>
 
   <!-- Custom fonts for this template-->
   <link href="includes/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -34,7 +34,7 @@ include('includes/init.php');
       <i class="fas fa-bars"></i>
     </button>
 
-    <a class="navbar-brand mr-1" href="index.php">Société Elamron : dérogations activités exceptionnelles</a>
+    <a class="navbar-brand mr-1" href="index.php">Application COVID-19</a>
 
     <!-- Navbar -->
     <ul class="navbar-nav ml-auto mr-0">
@@ -57,27 +57,23 @@ include('includes/init.php');
 
     <!-- Sidebar -->
     <ul class="sidebar navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" href="etudes_derogations.php">
-          <i class="fas fa-fw fa-table"></i>
-          <span>Etude des dérogations</span></a>
-      </li>
-      <?php if ($_SESSION['membre_comite'] == 1 || $_SESSION['sup_hierarchique'] == 1) { ?>
+
+
       <li class="nav-item">
         <a class="nav-link" href="index.php">
+          <i class="fas fa-fw fa-table"></i>
+          <span>Statistiques</span></a>
+      </li>
+
+
+      <?php if ($_SESSION['metier'] == 0) { ?>
+      <li class="nav-item">
+        <a class="nav-link" href="listepatients.php">
           <i class="fas fa-fw fa-tachometer-alt"></i>
-          <span>Rechercher une demande</span>
+          <span>Liste des patients</span>
         </a>
       </li>
     <?php } ?>
-      <li class="nav-item">
-        <a class="nav-link" href="derogation_user.php">
-          <i class="fas fa-fw fa-table"></i>
-          <span>Mes demandes de dérogation</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="faire_derogation.php">
-          <i class="fas fa-fw fa-table"></i>
-          <span>Faire une demande de dérogation</span></a>
-      </li>
+
+
     </ul> 

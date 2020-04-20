@@ -11,16 +11,7 @@ if ($_POST['MdP'] != $_POST['confirmerMdP']) {
   </div>
   <?php
 } else {
-  if ($_POST['comite'] == "on") {
-    $_POST['comite'] = 1;
-  } else {
-    $_POST['comite'] = 0;
-  }
-  if ($_POST['hierarchique'] == "on") {
-    $_POST['hierarchique'] = 1;
-  } else {
-    $_POST['hierarchique'] = 0;
-  }
+
 
   $sel = "EiHqBPuoTCW0BszhQamuxOwsBIDO6ZZUSeR5WhhqKxQKUFMrUgQAXYc2STrlkF9dSTleOMLTFSX2bgoty9JALP0rC5uoaiz7HUm4cPNN63NLfMPmhhvww1STBWAZ1ASTUJK2kRe9mLX9udguDx3Bt4bzN9jatM5o";
 
@@ -29,9 +20,8 @@ if ($_POST['MdP'] != $_POST['confirmerMdP']) {
   $mdp = hash('sha512', $pwdSel); // HASH
   
 
-  $query = "INSERT INTO personne (prenom_personne, nom_personne, date_n_personne, type_personne_id_type_personne, email, mdp, membre_comite, sup_hierarchique) 
-  VALUES ('$_POST[Prenom]','$_POST[NomDeFamille]','$_POST[DateNaissance]','$_POST[InputTypePers]','$_POST[Email]','$mdp','$_POST[comite]',
-  '$_POST[hierarchique]');";
+  $query = "INSERT INTO personne (prenom_personne, nom_personne, date_n_personne, metier, email, mdp) 
+  VALUES ('$_POST[Prenom]','$_POST[NomDeFamille]','$_POST[DateNaissance]','$_POST[InputMetier]','$_POST[Email]','$mdp');";
   if(pg_query($dbconn,$query)) {
     header('Location: /connexion.php');
   }
@@ -39,10 +29,10 @@ if ($_POST['MdP'] != $_POST['confirmerMdP']) {
 }
 }
 
-
+/*
 $query = 'SELECT * FROM type_personne';
 $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_TypePers);
+while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_TypePers);*/
 ?>
 
 <!DOCTYPE html>
@@ -70,7 +60,7 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
   <div class="container">
     <div class="card card-register mx-auto mt-5">
       <div class="card-header">Enregistrer un compte</div>
-      <div class="card-body">
+      <div class="card-body" style="margin-bottom: 1px">
         <form method="post" action="/inscription.php">
           <div class="form-group">
             <div class="form-row">
@@ -97,16 +87,21 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
                 </div>
               </div>
               <div class="col-md-6">
-               <select name="InputTypePers" class="form-control" id="InputAciviteExcep" required style="height: 52px;" required="required">
-                 <option value="NULL"> -- Merci de sélectionner --</option>
-                 <?php
+               <select name="InputMetier" class="form-control" id="Input" required style="height: 52px;" required="required">
+                 <option value=-1> -- Merci de sélectionner --</option>
+                 <option value=0>Médecin</option>
+                 <option value=1>Représentant Nationaux/Départementaux</option>
+                 <?php 
+                 
+                 
+                 /*
                  foreach($data_TypePers as $TypePers)
                   { ?>
                     <option value="<?=$TypePers['id_type_personne']?>"><?=$TypePers['nom_type_personne']?></option>
                     <?php
                   }
 
-                  ?>
+                 */ ?>
                 </select>
 
               </div>
@@ -132,21 +127,6 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
                   <label for="confirmerMdP">Confirmer mot de passe</label>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label-group">
-              Êtes-vous membre du comité ?
-              <input name="comite" id="comite" type="checkbox" data-toggle="toggle" data-on="Oui" data-off="Non" data-onstyle="success" data-offstyle="danger">
-
-            </div>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label-group">
-              Êtes-vous un supérieur hiérarchique ?
-              <input name="hierarchique" id="hierarchique" type="checkbox" data-toggle="toggle" data-on="Oui" data-off="Non" data-onstyle="success" data-offstyle="danger">
             </div>
           </div>
 

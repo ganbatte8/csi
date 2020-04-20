@@ -14,15 +14,8 @@ if ($_POST) {
   $mdp = hash('sha512', $pwdSel); // HASH
 
 
-
-
-
-  //print($_POST['mdp'] . $sel);
-  //print("test fin \n");
-  //print($mdp);
   // On va chercher dans la BDD l'utilisateur
   $query = "SELECT * FROM personne WHERE email = '$_POST[adresseEmail]' AND mdp = '$mdp'";
-  print($query);
   $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 
   while($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_user); // On trie les données sous forme de tableau
@@ -44,12 +37,10 @@ if ($_POST) {
     $_SESSION['nom_personne'] = $data_user[0]['nom_personne'];
     $_SESSION['prenom_personne'] = $data_user[0]['prenom_personne'];
     $_SESSION['date_n_personne'] = $data_user[0]['date_n_personne'];
-    $_SESSION['type_personne_id_type_personne'] = $data_user[0]['type_personne_id_type_personne'];
     $_SESSION['email'] = $data_user[0]['email'];
-    $_SESSION['membre_comite'] = $data_user[0]['membre_comite'];
-    $_SESSION['sup_hierarchique'] = $data_user[0]['sup_hierarchique'];
+    $_SESSION['metier'] = $data_user[0]['metier'];
 
-    header('Location: /etudes_derogations.php'); // On redirige l'utilisateur sur la page d'accueil.
+    header('Location: /index.php'); // On redirige l'utilisateur sur la page d'accueil.
 
   }
 
@@ -85,7 +76,7 @@ if ($_POST) {
   <div class="container">
     <div class="card card-login mx-auto mt-5">
       <div class="card-header">Connexion</div>
-      <div class="card-body">
+      <div class="card-body"  style="margin-bottom: 13px">
         <form method="post" action="/connexion.php">
           <div class="form-group">
             <div class="form-label-group">
@@ -102,7 +93,7 @@ if ($_POST) {
           <button style="height: 40px;" type="submit" class="btn btn-primary btn-block" href="/connexion.php">Connexion</a>
           </form>
           <div class="text-center">
-            <a class="d-block small mt-3" href="inscription.php">inscription</a>
+            <a class="d-block small mt-3" href="inscription.php">Inscription</a>
           </div>
         </div>
       </div>

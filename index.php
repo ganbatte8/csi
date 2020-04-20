@@ -1,327 +1,557 @@
 <?php
 include('includes/includes_theme/includes_up.php');
 
-
-function get_lundi_dimanche_from_week($week, $year) {
-  $week = sprintf('%02d',$week);
-  $start = strtotime($year.'W'.$week);
-  return array(
-         strtotime('Monday',$start),
-         strtotime('Sunday',$start)
-  );
-}
-
-// différence entre 2 dates
-function datediff($date1, $date2) {
-  $datetime1 = new DateTime($date1);
-  $datetime2 = new DateTime($date2);
-  $interval = $datetime1->diff($datetime2);
-  return $interval->format('%R%a') + 1;
-}
-
-
-  $lundi_dimanche = get_lundi_dimanche_from_week(date('W'), date('Y'));
-  $dateToDay_str = date("Y-m-d");
-  if(!$_POST) {
-      $date1 = $dateToDay_str;
-      $date2 = $dateToDay_str;
-      $checked['j'] = "checked"; 
-    $checked['modules'] = -1;
-  }
-  // V?rifications des param?tres pass?s
-  if($_POST['heure1'] != "") {    
-      $heure1 = $_POST['heure1'];
-  } else {
-      $heure1 =  "00:00";
-  }
-  if($_POST['heure2'] != "") {    
-      $heure2 = $_POST['heure2'];
-  }else {
-      $heure2 =  "23:59";
-  } 
-  if ($_POST) {
-      $date1 = $_POST['date1'];
-      $date2 = $_POST['date2'];
-  }
-
-  
-  
-  
-  // V?rification + 365J
-  $diffFour = datediff($date1, $date2);
-  if($diffFour > 367) {
-      $error = true;
-      $error_msg = "Période maximale : 1 an";
-  }
-
-  // Gestion des pr?selections J, J+1, S, S+1 etc.
-  if($_POST['preselections']) {
-      switch($_POST['preselections']) {
-    case 'j':
-        $date1 = $dateToDay_str;
-        $date2 = $dateToDay_str;
-        $checked['j'] = "checked"; 
-    break;
-    case 'j1':
-        $date1 = date('Y-m-d', strtotime("-1 day")); 
-        $date2 = date('Y-m-d', strtotime("-1 day"));
-        $checked['j1'] = "checked"; 
-    break;
-      
-    case 'j2':
-        $date1 = date('Y-m-d',strtotime("-2 day"));
-        $date2 = date('Y-m-d',strtotime("-2 day"));
-        $checked['j2'] = "checked"; 
-    break;
-      
-    case 's':
-        $date1 = date('Y-m-d', $lundi_dimanche[0]);
-        $date2 = $dateToDay_str;
-        $checked['s'] = "checked"; 
-    break;
-      
-    case 's1':
-        $date1 = date("Y-m-d", strtotime("-7 day", strtotime(date('Y-m-d', $lundi_dimanche[0]))));
-        $date2 = date("Y-m-d", strtotime("-7 day", strtotime(date('Y-m-d', $lundi_dimanche[1]))));
-        $checked['s1'] = "checked"; 
-    break;
-      
-    case 's2':
-        $date1 = date("Y-m-d", strtotime("-14 day", strtotime(date('Y-m-d', $lundi_dimanche[0]))));
-        $date2 = date("Y-m-d", strtotime("-14 day", strtotime(date('Y-m-d', $lundi_dimanche[1]))));
-        $checked['s2'] = "checked"; 
-    break;
-      
-    case 's3':
-        $date1 = date("Y-m-d", strtotime("-21 day", strtotime(date('Y-m-d', $lundi_dimanche[0]))));
-        $date2 = date("Y-m-d", strtotime("-21 day", strtotime(date('Y-m-d', $lundi_dimanche[1]))));
-        $checked['s3'] = "checked"; 
-    break;
-      
-    case 's4':
-        $date1 = date("Y-m-d", strtotime("-28 day", strtotime(date('Y-m-d', $lundi_dimanche[0]))));
-        $date2 = date("Y-m-d", strtotime("-28 day", strtotime(date('Y-m-d', $lundi_dimanche[1]))));
-        $checked['s4'] = "checked"; 
-    break;
-      
-    case 'm':
-        $date1 = date('Y-m') . '-01';
-        $date2 = $dateToDay_str;
-        $checked['m'] = "checked"; 
-    break;
-      
-    case 'm1':
-        $m = date('m');
-        $m--;
-        $m = sprintf('%02d', $m);
-        $date1 = date('Y-') . $m . '-01';
-        $mois = mktime(0,0,0, $m, 1, date('Y'));
-        $date2 = date('Y-') . $m . '-' . intval(date("t",$mois));
-        $checked['m1'] = "checked";
-    break;
-      
-    case 'm2':
-        $m = date('m');
-        $m--;
-        $m--;
-        $m = sprintf('%02d',$m);
-        $date1 = date('Y-') . $m . '-01';
-        $mois = mktime(0,0,0, $m, 1, date('Y'));
-        $date2 = date('Y-') . $m . '-' . intval(date("t",$mois));
-        $checked['m2'] = "checked";
-    break;
-      
-    case 'a':
-        $date1 = date('Y').'-01-01';
-        $date2 = $dateToDay_str;
-        $checked['a'] = "checked"; 
-    break;
-   
-      }
-  }
-
-  if(!$error) {
-      $date1_forSQL = $date1 . " ". $heure1 .":00";
-      $date2_forSQL = $date2 . " ". $heure2 .":59";
-  }
-    
-
-$query = "    SELECT  id_demande_de_derogation, date_demande_de_derogation,date_debut_demande_de_derogation,
-                      date_fin_demande_de_derogation , montant_remuneration_demande_de_derogation , 
-                      id_type_etat_validation, nom_etat, nom_type_activite_excep, personne_id_personne, nom_personne, prenom_personne
-              FROM demande_de_derogation 
-              INNER JOIN type_etat_validation ON demande_de_derogation.type_etat_validation_id_type_etat_validation = type_etat_validation.id_type_etat_validation
-              INNER JOIN personne ON demande_de_derogation.personne_qui_demande_id_personne = personne.id_personne
-              INNER JOIN type_activite_excep ON demande_de_derogation.type_activite_excep_id_type_activite_excep = type_activite_excep.id_type_activite_excep
-              WHERE date_demande_de_derogation BETWEEN '$date1_forSQL' AND '$date2_forSQL'";
-$result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-while($data_demandes_derogations[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_demandes_derogations);
-
 ?>
+
+
 
 <div id="content-wrapper">
 
-  <div class="container-fluid">
-
-    <!-- Breadcrumbs-->
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item">
-        <a href="index.html">Dashboard</a>
-      </li>
-      <li class="breadcrumb-item active">Affichage des demandes de dérogation</li>
-    </ol>
-
-    <!-- Page Content -->
-    <h1>Liste des demandes</h1>
-    <hr>
-    <p>Vous pouvez sélectionner des dates pour afiner votre recherche.</p>
-
-
-
-    <div class="row" style="width: 1000px; margin: auto;">
-      <center>
-        <form method="POST">
-          <div class="row">
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="j"><input type="radio" name="preselections" value="j" id="j" onClick="this.form.submit();" <?=$checked['j']?>>Aujourd'hui</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="j1"><input type="radio" name="preselections" value="j1" id="j1" onClick="this.form.submit();" <?=$checked['j1']?>>Hier</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="j2"><input type="radio" name="preselections" value="j2" id="j2" onClick="this.form.submit();" <?=$checked['j2']?>>Avant hier</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="s"><input type="radio" name="preselections" value="s" id="s" onClick="this.form.submit();" <?=$checked['s']?>>Cette semaine</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="s1"><input type="radio" name="preselections" value="s1" id="s1" onClick="this.form.submit();" <?=$checked['s1']?>>Semaine dernière</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="s2"><input type="radio" name="preselections" value="s2" id="s2" onClick="this.form.submit();" <?=$checked['s2']?>>S-2</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="s3"><input type="radio" name="preselections" value="s3" id="s3" onClick="this.form.submit();" <?=$checked['s3']?>>S-3</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="s4"><input type="radio" name="preselections" value="s4" id="s4" onClick="this.form.submit();" <?=$checked['s4']?>>S-4</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="m"><input type="radio" name="preselections" value="m" id="m" onClick="this.form.submit();" <?=$checked['m']?>>Mois en cours</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="m1"><input type="radio" name="preselections" value="m1" id="m1" onClick="this.form.submit();" <?=$checked['m1']?>>M-1</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="m2"><input type="radio" name="preselections" value="m2" id="m2" onClick="this.form.submit();" <?=$checked['m2']?>>M-2</label>
-            </div>
-            <div class="form-check form-check-inline">
-              <label class="form-check-label" for="a"><input type="radio" name="preselections" value="a" id="a" onClick="this.form.submit();" <?=$checked['a']?>>Cette Année</label>
-            </div>
-
-          </div>
-          <div class="row">
-
-            <center>
-
-              <input onchange="javascript:clearradio()" type="date" name="date1" id="date1" value="<?=$date1?>"/>
-              <input onchange="javascript:clearradio()" type="time" name="heure1" value="<?=$heure1?>"/>
-              <input onchange="javascript:clearradio()" type="date" name="date2" id="date2" value="<?=$date2?>"/>
-              <input onchange="javascript:clearradio()" type="time" name="heure2" value="<?=$heure2?>"/>
-              <input onClick="javascript:clearradio()" type="submit"/>
-              <script>
-                function clearradio() {
-                  document.getElementById("j").checked = false;
-                  document.getElementById("j1").checked = false;
-                  document.getElementById("j2").checked = false;
-                  document.getElementById("s").checked = false;
-                  document.getElementById("s1").checked = false;
-                  document.getElementById("s2").checked = false;
-                  document.getElementById("s3").checked = false;
-                  document.getElementById("s4").checked = false;
-                  document.getElementById("m").checked = false;
-                  document.getElementById("m1").checked = false;
-                  document.getElementById("m2").checked = false;
-                  document.getElementById("a").checked = false;
-
-                }
-              </script></center>
-            </div>
-          </form>   
-        </center>
-
-
-      </div>
-
-
-
-      <!-- DataTables Example -->
-      <div class="card mb-3">
-        <div class="card-header">
-          <i class="fas fa-table"></i>
-        Demandes de dérogation</div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>Numéro de dérogation</th>
-                  <th>Type d'activité</th>
-                  <th>Date de demande</th>
-                  <th>Date de début d'activité</th>
-                  <th>Date de fin d'activité</th>
-                  <th>Montant de rénumération</th>
-                  <th>Personne</th>
-                  <th>Etat</th>
-                  <th style="width: 200px;">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-
-                <?php
-                if ($data_demandes_derogations) {
-                  foreach($data_demandes_derogations as $demande)
-                    { ?>  
-
-                      <tr>
-                        <td><?=$demande[id_demande_de_derogation]?></td>
-                        <td><?=$demande[nom_type_activite_excep]?></td>
-                        <td><?=$demande[date_demande_de_derogation]?></td>
-                        <td><?=$demande[date_debut_demande_de_derogation]?></td>
-                        <td><?=$demande[date_fin_demande_de_derogation]?></td>
-                        <td><?=$demande[montant_remuneration_demande_de_derogation]?></td>
-                        <td><?=$demande[nom_personne]?> <?=$demande[prenom_personne]?></td>
-                        <td><?=$demande[nom_etat]?></td>
-                        <td>
-                          <a href="/historique_demande.php?id_demande=<?=$demande['id_demande_de_derogation']?>"><button class="btn btn-info" title="Historique">Historique</button></a>
-                        </td>
-                      </tr>
-
-                      <?php
-                    }
-                  }
-                  ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      </div>
+<div class="container-fluid">
+                        <h1 class="mt-4">Dashboard</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item active">Dashboard</li>
+                        </ol>
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card bg-primary text-white mb-4">
+                                    <div class="card-body">Primary Card</div>
+                                    <div class="card-footer d-flex align-items-center justify-content-between">
+                                        <a class="small text-white stretched-link" href="#">View Details</a>
+                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card bg-warning text-white mb-4">
+                                    <div class="card-body">Warning Card</div>
+                                    <div class="card-footer d-flex align-items-center justify-content-between">
+                                        <a class="small text-white stretched-link" href="#">View Details</a>
+                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card bg-success text-white mb-4">
+                                    <div class="card-body">Success Card</div>
+                                    <div class="card-footer d-flex align-items-center justify-content-between">
+                                        <a class="small text-white stretched-link" href="#">View Details</a>
+                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card bg-danger text-white mb-4">
+                                    <div class="card-body">Danger Card</div>
+                                    <div class="card-footer d-flex align-items-center justify-content-between">
+                                        <a class="small text-white stretched-link" href="#">View Details</a>
+                                        <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xl-6">
+                                <div class="card mb-4">
+                                    <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Area Chart Example</div>
+                                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
+                                </div>
+                            </div>
+                            <div class="col-xl-6">
+                                <div class="card mb-4">
+                                    <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Bar Chart Example</div>
+                                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-header"><i class="fas fa-table mr-1"></i>DataTable Example</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Position</th>
+                                                <th>Office</th>
+                                                <th>Age</th>
+                                                <th>Start date</th>
+                                                <th>Salary</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Position</th>
+                                                <th>Office</th>
+                                                <th>Age</th>
+                                                <th>Start date</th>
+                                                <th>Salary</th>
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                            <tr>
+                                                <td>Tiger Nixon</td>
+                                                <td>System Architect</td>
+                                                <td>Edinburgh</td>
+                                                <td>61</td>
+                                                <td>2011/04/25</td>
+                                                <td>$320,800</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Garrett Winters</td>
+                                                <td>Accountant</td>
+                                                <td>Tokyo</td>
+                                                <td>63</td>
+                                                <td>2011/07/25</td>
+                                                <td>$170,750</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Ashton Cox</td>
+                                                <td>Junior Technical Author</td>
+                                                <td>San Francisco</td>
+                                                <td>66</td>
+                                                <td>2009/01/12</td>
+                                                <td>$86,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cedric Kelly</td>
+                                                <td>Senior Javascript Developer</td>
+                                                <td>Edinburgh</td>
+                                                <td>22</td>
+                                                <td>2012/03/29</td>
+                                                <td>$433,060</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Airi Satou</td>
+                                                <td>Accountant</td>
+                                                <td>Tokyo</td>
+                                                <td>33</td>
+                                                <td>2008/11/28</td>
+                                                <td>$162,700</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Brielle Williamson</td>
+                                                <td>Integration Specialist</td>
+                                                <td>New York</td>
+                                                <td>61</td>
+                                                <td>2012/12/02</td>
+                                                <td>$372,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Herrod Chandler</td>
+                                                <td>Sales Assistant</td>
+                                                <td>San Francisco</td>
+                                                <td>59</td>
+                                                <td>2012/08/06</td>
+                                                <td>$137,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rhona Davidson</td>
+                                                <td>Integration Specialist</td>
+                                                <td>Tokyo</td>
+                                                <td>55</td>
+                                                <td>2010/10/14</td>
+                                                <td>$327,900</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Colleen Hurst</td>
+                                                <td>Javascript Developer</td>
+                                                <td>San Francisco</td>
+                                                <td>39</td>
+                                                <td>2009/09/15</td>
+                                                <td>$205,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sonya Frost</td>
+                                                <td>Software Engineer</td>
+                                                <td>Edinburgh</td>
+                                                <td>23</td>
+                                                <td>2008/12/13</td>
+                                                <td>$103,600</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jena Gaines</td>
+                                                <td>Office Manager</td>
+                                                <td>London</td>
+                                                <td>30</td>
+                                                <td>2008/12/19</td>
+                                                <td>$90,560</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Quinn Flynn</td>
+                                                <td>Support Lead</td>
+                                                <td>Edinburgh</td>
+                                                <td>22</td>
+                                                <td>2013/03/03</td>
+                                                <td>$342,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Charde Marshall</td>
+                                                <td>Regional Director</td>
+                                                <td>San Francisco</td>
+                                                <td>36</td>
+                                                <td>2008/10/16</td>
+                                                <td>$470,600</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Haley Kennedy</td>
+                                                <td>Senior Marketing Designer</td>
+                                                <td>London</td>
+                                                <td>43</td>
+                                                <td>2012/12/18</td>
+                                                <td>$313,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Tatyana Fitzpatrick</td>
+                                                <td>Regional Director</td>
+                                                <td>London</td>
+                                                <td>19</td>
+                                                <td>2010/03/17</td>
+                                                <td>$385,750</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Michael Silva</td>
+                                                <td>Marketing Designer</td>
+                                                <td>London</td>
+                                                <td>66</td>
+                                                <td>2012/11/27</td>
+                                                <td>$198,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Paul Byrd</td>
+                                                <td>Chief Financial Officer (CFO)</td>
+                                                <td>New York</td>
+                                                <td>64</td>
+                                                <td>2010/06/09</td>
+                                                <td>$725,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Gloria Little</td>
+                                                <td>Systems Administrator</td>
+                                                <td>New York</td>
+                                                <td>59</td>
+                                                <td>2009/04/10</td>
+                                                <td>$237,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bradley Greer</td>
+                                                <td>Software Engineer</td>
+                                                <td>London</td>
+                                                <td>41</td>
+                                                <td>2012/10/13</td>
+                                                <td>$132,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Dai Rios</td>
+                                                <td>Personnel Lead</td>
+                                                <td>Edinburgh</td>
+                                                <td>35</td>
+                                                <td>2012/09/26</td>
+                                                <td>$217,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jenette Caldwell</td>
+                                                <td>Development Lead</td>
+                                                <td>New York</td>
+                                                <td>30</td>
+                                                <td>2011/09/03</td>
+                                                <td>$345,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Yuri Berry</td>
+                                                <td>Chief Marketing Officer (CMO)</td>
+                                                <td>New York</td>
+                                                <td>40</td>
+                                                <td>2009/06/25</td>
+                                                <td>$675,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Caesar Vance</td>
+                                                <td>Pre-Sales Support</td>
+                                                <td>New York</td>
+                                                <td>21</td>
+                                                <td>2011/12/12</td>
+                                                <td>$106,450</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Doris Wilder</td>
+                                                <td>Sales Assistant</td>
+                                                <td>Sidney</td>
+                                                <td>23</td>
+                                                <td>2010/09/20</td>
+                                                <td>$85,600</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Angelica Ramos</td>
+                                                <td>Chief Executive Officer (CEO)</td>
+                                                <td>London</td>
+                                                <td>47</td>
+                                                <td>2009/10/09</td>
+                                                <td>$1,200,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Gavin Joyce</td>
+                                                <td>Developer</td>
+                                                <td>Edinburgh</td>
+                                                <td>42</td>
+                                                <td>2010/12/22</td>
+                                                <td>$92,575</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jennifer Chang</td>
+                                                <td>Regional Director</td>
+                                                <td>Singapore</td>
+                                                <td>28</td>
+                                                <td>2010/11/14</td>
+                                                <td>$357,650</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Brenden Wagner</td>
+                                                <td>Software Engineer</td>
+                                                <td>San Francisco</td>
+                                                <td>28</td>
+                                                <td>2011/06/07</td>
+                                                <td>$206,850</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Fiona Green</td>
+                                                <td>Chief Operating Officer (COO)</td>
+                                                <td>San Francisco</td>
+                                                <td>48</td>
+                                                <td>2010/03/11</td>
+                                                <td>$850,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Shou Itou</td>
+                                                <td>Regional Marketing</td>
+                                                <td>Tokyo</td>
+                                                <td>20</td>
+                                                <td>2011/08/14</td>
+                                                <td>$163,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Michelle House</td>
+                                                <td>Integration Specialist</td>
+                                                <td>Sidney</td>
+                                                <td>37</td>
+                                                <td>2011/06/02</td>
+                                                <td>$95,400</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Suki Burks</td>
+                                                <td>Developer</td>
+                                                <td>London</td>
+                                                <td>53</td>
+                                                <td>2009/10/22</td>
+                                                <td>$114,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Prescott Bartlett</td>
+                                                <td>Technical Author</td>
+                                                <td>London</td>
+                                                <td>27</td>
+                                                <td>2011/05/07</td>
+                                                <td>$145,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Gavin Cortez</td>
+                                                <td>Team Leader</td>
+                                                <td>San Francisco</td>
+                                                <td>22</td>
+                                                <td>2008/10/26</td>
+                                                <td>$235,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Martena Mccray</td>
+                                                <td>Post-Sales support</td>
+                                                <td>Edinburgh</td>
+                                                <td>46</td>
+                                                <td>2011/03/09</td>
+                                                <td>$324,050</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Unity Butler</td>
+                                                <td>Marketing Designer</td>
+                                                <td>San Francisco</td>
+                                                <td>47</td>
+                                                <td>2009/12/09</td>
+                                                <td>$85,675</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Howard Hatfield</td>
+                                                <td>Office Manager</td>
+                                                <td>San Francisco</td>
+                                                <td>51</td>
+                                                <td>2008/12/16</td>
+                                                <td>$164,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Hope Fuentes</td>
+                                                <td>Secretary</td>
+                                                <td>San Francisco</td>
+                                                <td>41</td>
+                                                <td>2010/02/12</td>
+                                                <td>$109,850</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Vivian Harrell</td>
+                                                <td>Financial Controller</td>
+                                                <td>San Francisco</td>
+                                                <td>62</td>
+                                                <td>2009/02/14</td>
+                                                <td>$452,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Timothy Mooney</td>
+                                                <td>Office Manager</td>
+                                                <td>London</td>
+                                                <td>37</td>
+                                                <td>2008/12/11</td>
+                                                <td>$136,200</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jackson Bradshaw</td>
+                                                <td>Director</td>
+                                                <td>New York</td>
+                                                <td>65</td>
+                                                <td>2008/09/26</td>
+                                                <td>$645,750</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Olivia Liang</td>
+                                                <td>Support Engineer</td>
+                                                <td>Singapore</td>
+                                                <td>64</td>
+                                                <td>2011/02/03</td>
+                                                <td>$234,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Bruno Nash</td>
+                                                <td>Software Engineer</td>
+                                                <td>London</td>
+                                                <td>38</td>
+                                                <td>2011/05/03</td>
+                                                <td>$163,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sakura Yamamoto</td>
+                                                <td>Support Engineer</td>
+                                                <td>Tokyo</td>
+                                                <td>37</td>
+                                                <td>2009/08/19</td>
+                                                <td>$139,575</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Thor Walton</td>
+                                                <td>Developer</td>
+                                                <td>New York</td>
+                                                <td>61</td>
+                                                <td>2013/08/11</td>
+                                                <td>$98,540</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Finn Camacho</td>
+                                                <td>Support Engineer</td>
+                                                <td>San Francisco</td>
+                                                <td>47</td>
+                                                <td>2009/07/07</td>
+                                                <td>$87,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Serge Baldwin</td>
+                                                <td>Data Coordinator</td>
+                                                <td>Singapore</td>
+                                                <td>64</td>
+                                                <td>2012/04/09</td>
+                                                <td>$138,575</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Zenaida Frank</td>
+                                                <td>Software Engineer</td>
+                                                <td>New York</td>
+                                                <td>63</td>
+                                                <td>2010/01/04</td>
+                                                <td>$125,250</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Zorita Serrano</td>
+                                                <td>Software Engineer</td>
+                                                <td>San Francisco</td>
+                                                <td>56</td>
+                                                <td>2012/06/01</td>
+                                                <td>$115,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jennifer Acosta</td>
+                                                <td>Junior Javascript Developer</td>
+                                                <td>Edinburgh</td>
+                                                <td>43</td>
+                                                <td>2013/02/01</td>
+                                                <td>$75,650</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cara Stevens</td>
+                                                <td>Sales Assistant</td>
+                                                <td>New York</td>
+                                                <td>46</td>
+                                                <td>2011/12/06</td>
+                                                <td>$145,600</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Hermione Butler</td>
+                                                <td>Regional Director</td>
+                                                <td>London</td>
+                                                <td>47</td>
+                                                <td>2011/03/21</td>
+                                                <td>$356,250</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Lael Greer</td>
+                                                <td>Systems Administrator</td>
+                                                <td>London</td>
+                                                <td>21</td>
+                                                <td>2009/02/27</td>
+                                                <td>$103,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Jonas Alexander</td>
+                                                <td>Developer</td>
+                                                <td>San Francisco</td>
+                                                <td>30</td>
+                                                <td>2010/07/14</td>
+                                                <td>$86,500</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Shad Decker</td>
+                                                <td>Regional Director</td>
+                                                <td>Edinburgh</td>
+                                                <td>51</td>
+                                                <td>2008/11/13</td>
+                                                <td>$183,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Michael Bruce</td>
+                                                <td>Javascript Developer</td>
+                                                <td>Singapore</td>
+                                                <td>29</td>
+                                                <td>2011/06/27</td>
+                                                <td>$183,000</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Donna Snider</td>
+                                                <td>Customer Support</td>
+                                                <td>New York</td>
+                                                <td>27</td>
+                                                <td>2011/01/25</td>
+                                                <td>$112,000</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
       <!-- /.container-fluid -->
 
       <!-- Sticky Footer -->
