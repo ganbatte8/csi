@@ -7,7 +7,7 @@ session_start(); // On démarre le système de session PHP
 
 
 // Si l'utilisateur n'est pas connecté, il doit être redirigé vers la page de connexion
-if (!isset($_SESSION['id_personne'])) {
+if (!isset($_SESSION['iduser'])) {
 		header('Location: /connexion.php');
 }
 ?> 

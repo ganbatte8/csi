@@ -15,7 +15,7 @@ if ($_POST) {
 
 
   // On va chercher dans la BDD l'utilisateur
-  $query = "SELECT * FROM personne WHERE email = '$_POST[adresseEmail]' AND mdp = '$mdp'";
+  $query = "SELECT * FROM utilisateur WHERE mail = '$_POST[adresseEmail]' AND motdp = '$mdp'";
   $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 
   while($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_user); // On trie les données sous forme de tableau
@@ -33,11 +33,10 @@ if ($_POST) {
     session_start(); // On démarre le système de session PHP
 
     // On enregistre les données de l'utilisateur dans la variables $_SESSION
-    $_SESSION['id_personne'] = $data_user[0]['id_personne'];
-    $_SESSION['nom_personne'] = $data_user[0]['nom_personne'];
-    $_SESSION['prenom_personne'] = $data_user[0]['prenom_personne'];
-    $_SESSION['date_n_personne'] = $data_user[0]['date_n_personne'];
-    $_SESSION['email'] = $data_user[0]['email'];
+    $_SESSION['iduser'] = $data_user[0]['iduser'];
+    $_SESSION['nom'] = $data_user[0]['nom'];
+    $_SESSION['prenom'] = $data_user[0]['prenom'];
+    $_SESSION['mail'] = $data_user[0]['mail'];
     $_SESSION['metier'] = $data_user[0]['metier'];
 
     header('Location: /index.php'); // On redirige l'utilisateur sur la page d'accueil.

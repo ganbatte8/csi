@@ -20,8 +20,17 @@ if ($_POST['MdP'] != $_POST['confirmerMdP']) {
   $mdp = hash('sha512', $pwdSel); // HASH
   
 
-  $query = "INSERT INTO personne (prenom_personne, nom_personne, date_n_personne, metier, email, mdp) 
-  VALUES ('$_POST[Prenom]','$_POST[NomDeFamille]','$_POST[DateNaissance]','$_POST[InputMetier]','$_POST[Email]','$mdp');";
+  $query = "";
+  if(isset($_POST['InputHopital'])){
+      $query =  "INSERT INTO utilisateur (nom, prenom, mail, metier, motdp, idhp) 
+      VALUES ('$_POST[NomDeFamille]','$_POST[Prenom]','$_POST[Email]','$_POST[InputMetier]','$mdp', '$_POST[InputHopital]');";    
+  } else{
+    $query =  "INSERT INTO utilisateur (nom, prenom, mail, metier, motdp) 
+    VALUES ('$_POST[NomDeFamille]','$_POST[Prenom]','$_POST[Email]','$_POST[InputMetier]','$mdp');";
+  }
+  
+  
+  
   if(pg_query($dbconn,$query)) {
     header('Location: /connexion.php');
   }
@@ -29,11 +38,13 @@ if ($_POST['MdP'] != $_POST['confirmerMdP']) {
 }
 }
 
-/*
-$query = 'SELECT * FROM type_personne';
+
+$query = 'SELECT * FROM hopital';
 $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_TypePers);*/
+while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_Hopital);
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="fr">
@@ -81,13 +92,7 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
           <div class="form-group">
             <div class="form-row">
               <div class="col-md-6">
-                <div class="form-label-group">
-                  <input name="DateNaissance" type="date" id="DateNaissance" class="form-control" placeholder="Date de naissance" required="required" autofocus="autofocus" max="<?=date("Y-m-d")?>">
-                  <label for="DateNaissance">Date de naissance</label>
-                </div>
-              </div>
-              <div class="col-md-6">
-               <select name="InputMetier" class="form-control" id="Input" required style="height: 52px;" required="required">
+               <select name="InputMetier" class="form-control" id="InputMetier" required style="height: 52px;" required="required">
                  <option value=-1> -- Merci de sélectionner --</option>
                  <option value=0>Médecin</option>
                  <option value=1>Représentant Nationaux/Départementaux</option>
@@ -102,6 +107,23 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
                   }
 
                  */ ?>
+                </select>
+
+              </div>
+              <div class="col-md-6">
+               <select name="InputHopital" class="form-control" id="InputHopital" required style="height: 52px;" required="required">
+                 <option value=-1> -- Merci de sélectionner --</option>
+                 <?php 
+                 
+                 
+                 
+                 foreach($data_Hopital as $Hopital)
+                  { ?>
+                    <option value="<?=$Hopital['idhp']?>"><?=$Hopital['nom']?> <?=$Hopital['adresseh']?></option>
+                    <?php
+                  }
+
+                  ?>
                 </select>
 
               </div>
@@ -142,6 +164,19 @@ while($data_TypePers[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop(
     <!-- Bootstrap core JavaScript-->
     <script src="includes/vendor/jquery/jquery.min.js"></script>
     <script src="includes/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script type="text/javascript"> 
+      $(function() {
+          $('#InputMetier').on('change', function(e) {
+              select_val = $(this).val();
+              if(select_val == 0) {
+                $('#InputHopital').removeAttr("disabled");
+              } else {
+                $('#InputHopital').prop('disabled', 'disabled');
+              };
+          });
+      });
+    </script>
 
     <!-- Core plugin JavaScript-->
     <script src="includes/vendor/jquery-easing/jquery.easing.min.js"></script>

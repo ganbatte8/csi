@@ -44,7 +44,7 @@ include('includes/init.php');
         </a>
 
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-           Bonjour <?=$_SESSION['prenom_personne']?> <?=$_SESSION['nom_personne']?> !
+           Bonjour <?=$_SESSION['prenom']?> <?=$_SESSION['nom']?> !
           <div class="dropdown-divider"></div>
           <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">Déconnexion</a>
         </div>
