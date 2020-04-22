@@ -2,7 +2,7 @@
 // Connexion, sélection de la base de données
 $dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
     or die('Connexion impossible : ' . pg_last_error());
-
+$result = "";
 session_start(); // On démarre le système de session PHP
 
 

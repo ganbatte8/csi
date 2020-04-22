@@ -41,8 +41,9 @@
 </html>  
 <?php
 // Libère le résultat
-pg_free_result($result);
-
+if ($result != ""){
+  pg_free_result($result);
+}
 // Ferme la connexion
 pg_close($dbconn);
 

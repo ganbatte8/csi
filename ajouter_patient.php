@@ -1,11 +1,11 @@
 <?php
 //Connexion à la BDD
-$dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
-    or die('Connexion impossible : ' . pg_last_error());
+// $dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
+    // or die('Connexion impossible : ' . pg_last_error());
 
 
 
-include('includes/includes_theme/includes_up.php');
+include('includes/includes_theme/includes_up.php'); // initialise $dbconn
 if ($_SESSION['metier'] != 0) {
     header('Location: /erreur.php');
 }
@@ -13,9 +13,18 @@ if ($_SESSION['metier'] != 0) {
 
 // $query = "SELECT * FROM patient;";
 // $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-
 $query = "";
-if (isset($_POST['InputPatient'])) {
+if (isset($_POST['sendfeedback'])){
+    //, $_POST['prenom'],$_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email']
+    echo "helloooooooooooooooo";
+    echo $_POST['numss'];
+    echo $_POST['prenom'];
+    echo $_POST['nom'];
+    echo $_POST['datenaissance'];
+    echo $_POST['genre'];
+    echo $_POST['numtelephone'];
+    echo $_POST['adressep'];
+    echo $_POST['email'];
     $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email)
       VALUES ('$_POST[numss]','$_POST[prenom]','$_POST[nom]','aucun symptôme','quarantaine', '$_POST[datenaissance]', '$_POST[genre]', 
       '$_POST[numtelephone]', '$_POST[adressep]', '$_POST[email]');";
@@ -54,11 +63,11 @@ if (isset($_POST['InputPatient'])) {
     </div>
     <div class="form-group ">
         <label for="numeross">Numéro de sécurité social</label>
-        <input type="text" class="form-control" id="numéross" name="nummss" placeholder="0123456789123">
+        <input type="text" class="form-control" id="numéross" name="numss" placeholder="0123456789123">
     </div>
     <div class="form-group ">
         <label for="numeross">Date de naissance</label>
-        <input type="text" class="form-control" id="numéross" name="datenaissance" placeholder="0123456789123">
+        <input type="text" class="form-control" id="numéross" name="datenaissance" placeholder="2020-02-14">
     </div>
     <div class="form-group">
         <label for="numtel">Numéro de téléphone</label>
@@ -72,7 +81,7 @@ if (isset($_POST['InputPatient'])) {
         <label for="email">Adresse mail</label>
         <input type="text" class="form-control" id="email" name="email" placeholder="truc@gmail.com">
     </div>
-    <button type="submit" class="btn btn-primary">Ajout patient</button>
+    <button type="submit" name= "sendfeedback" class="btn btn-primary">Ajout patient</button>
 
 
 </form>
@@ -80,19 +89,18 @@ if (isset($_POST['InputPatient'])) {
 
 
 <!-- Sticky Footer -->
-<!--
-<footer class="sticky-footer">
-    <div class="container my-auto">
+
+<footer class="">
+    <div class="container my-auto position">
         <div class="copyright text-center my-auto">
             <span>Copyright © Projet universitaire L3 MIASHS - MIAGE : Conception de Systèmes d'Information 2019</span>
         </div>
     </div>
 </footer>
-</div> -->
 <!-- /.content-wrapper -->
 
 <?php
-include('includes/includes_theme/includes_down.php');
+include('includes/includes_theme/includes_down.php'); // free $result
 ?>
 
 <!-- Page level plugin JavaScript-->
