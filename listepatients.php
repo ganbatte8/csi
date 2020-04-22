@@ -35,8 +35,11 @@ $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
                             <div class="card-header"><i class="fas fa-table mr-1"></i>DataTable Example</div>
                             <div class="card-body">
                                 <div class="table-responsive">
+                                   <div class="btn btn-success mb-2" id="bloc2" onClick="window.location.href='ajouter_patient.php';">
+                                      <label>Ajouter patient</label>
+                                  </div>
                                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                        <thead>
+                                        <thead class="thead-light">
                                             <tr>
                                                 <th>Numéro de sécurité social</th>
                                                 <th>Prénom</th>
@@ -56,13 +59,13 @@ $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
                                         while ($row = pg_fetch_row($result)){
                                           echo '<tr>';
                                           for ($i = 0; $i < count($row); $i++){
-                                              echo '<td>'.$row[$i]." ";
+                                              echo '<td>'.$row[$i]."</td>";
                                           }
                                           echo "</tr>";
                                         }
                                         ?>
                                         </tbody>
-                                        <tfoot>
+                                        <tfoot class="thead-light">
                                             <tr>
                                                 <th>Numéro de sécurité social</th>
                                                 <th>Prénom</th>
