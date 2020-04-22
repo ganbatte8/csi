@@ -93,7 +93,7 @@ while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($
             <div class="form-row">
               <div class="col-md-6">
                <select name="InputMetier" class="form-control" id="InputMetier" required style="height: 52px;" required="required">
-                 <option value=-1> -- Merci de sélectionner --</option>
+                 <option value=-1> -- Merci de sélectionner votre statut --</option>
                  <option value=0>Médecin</option>
                  <option value=1>Représentant Nationaux/Départementaux</option>
                  <?php 
@@ -112,7 +112,7 @@ while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($
               </div>
               <div class="col-md-6">
                <select name="InputHopital" class="form-control" id="InputHopital" required style="height: 52px;" required="required">
-                 <option value=-1> -- Merci de sélectionner --</option>
+                 <option value=-1> -- Merci de sélectionner un hôpital --</option>
                  <?php 
                  
                  

@@ -48,3 +48,20 @@ CREATE DOMAIN dom_historiqueEtat AS text
 CREATE DOMAIN dom_entier_positif AS INTEGER
 	CONSTRAINT dom_entier_positif
 	 CHECK (VALUE >= 0);
+
+
+
+---vérifie si le domaine associé à la table testcontamination est positif ou négatif
+CREATE DOMAIN dom_testcontamination AS text
+	CONSTRAINT dom_testcontamination
+	CHECK(
+		VALUE = 'positif'
+		OR VALUE = 'négatif' 
+);
+
+
+
+
+
+
+

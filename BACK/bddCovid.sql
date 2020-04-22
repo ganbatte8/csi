@@ -6,9 +6,9 @@ CREATE TABLE Departement(
         seuilPersContamine REAL NOT NULL,
         nomDep VARCHAR(50),
         CONSTRAINT departement_pk PRIMARY KEY (idDep),
-	CONSTRAINT nbHabitant CHECK(nbHabitant > 0),
-	CONSTRAINT seuilPersContamine_positif 
-	CHECK (seuilPersContamine > 0 AND seuilPersContamine <= 100)
+		CONSTRAINT nbHabitant CHECK(nbHabitant > 0),
+		CONSTRAINT seuilPersContamine_positif 
+		CHECK (seuilPersContamine > 0 AND seuilPersContamine <= 100)
 );
 
 /* SEQUENCE permet de définir un générateur de séequence de nombre.
@@ -25,29 +25,12 @@ La colonne se transformera en type INTEGER mais aura une valeur par défaut à n
 CREATE TABLE ma_table (idauto SERIAL, nom VARCHAR(100));
 
 */
---Création de la séquence pour la table adresse 
-CREATE SEQUENCE adresse_idadresse_seq;
-
-/* nextval :  INCREMENT à la valeur actuelle de la séquence et renvoit sa nouvelle valeur, le type de retour est un BIGINT */
-
---Création de la table adresse
-CREATE TABLE adresse (
-                idAdresse INTEGER NOT NULL DEFAULT nextval('adresse_idadresse_seq'),  
-                numero dom_entier_positif NOT NULL,
-                rue VARCHAR(100) NOT NULL,
-                codePostale NUMERIC(5) NOT NULL,
-                nomVille VARCHAR(50) NOT NULL,
-                idDep INTEGER NOT NULL,
-                CONSTRAINT adresse_pk PRIMARY KEY (idAdresse)
-				
-);
 
 /* OWNED BY permet d’associer la séquence à une colonne de la table spécifique.
 De cette façon la séquence sera automatiquement supprimée si la colonne (ou la table entière) est supprimée. 
 La table indiquée doit avoir le même propriétaire et être dans le même schéma que la séquence. 
 OWNED BY NONE, valeur par défaut, indique qu'il n'y a pas d'association. */
 
-ALTER SEQUENCE adresse_idadresse_seq OWNED BY adresse.idAdresse;
 
 --Création de la table Patient
 -- Ici on ne crée pas de séquence car le numéro de sécurité social on ne l'incrémente pas, cependant il est unique 
@@ -60,10 +43,11 @@ CREATE TABLE Patient(
                 dateNaissance DATE NOT NULL,
                 genre dom_genre NOT NULL,
                 numTelephone NUMERIC,
-                email VARCHAR(50) UNIQUE, --on considère qu'un patient à un unique e-mail et il peut être null
-                idAdresse INTEGER NOT NULL,
+		adressep VARCHAR(1000),
+                email VARCHAR(250), --on considère qu'un mineur pourra utiliser l'adresse de ses parents et un patient il peut ne pas avoir de mail
+
                 CONSTRAINT patient_pk PRIMARY KEY (numss),
-	CONSTRAINT dateNaissance_anterieur CHECK (dateNaissance < CURRENT_TIMESTAMP) 
+				CONSTRAINT dateNaissance_anterieur CHECK (dateNaissance < CURRENT_TIMESTAMP) 
 );
 
 --Création de la séquence pour la table historiqueEtatP
@@ -76,7 +60,7 @@ CREATE TABLE historiqueEtatP (
                 dateHistorique TIMESTAMP,
                 numss BIGINT NOT NULL,
                 CONSTRAINT historiqueetatp_pk PRIMARY KEY (idHistorique),
-		CONSTRAINT dateHistorique_post CHECK (dateHistorique <= CURRENT_TIMESTAMP )--A VERIFIER
+				CONSTRAINT dateHistorique_post CHECK (dateHistorique <= CURRENT_TIMESTAMP )
 );
 
 -- OWNED BY permet d’associer la séquence à une colonne de la table  historiqueEtatP
@@ -92,9 +76,9 @@ CREATE TABLE surveillance (
                 dateFinSurv TIMESTAMP DEFAULT NULL,
                 numss BIGINT NOT NULL,
                 CONSTRAINT surveillance_pk PRIMARY KEY (idSurveillance),
-		CONSTRAINT survDebSurv_post CHECK (dateDebSurv <= CURRENT_TIMESTAMP),
-		CONSTRAINT dateFinSurv_nNull_post 
-			CHECK (dateFinSurv <= CURRENT_TIMESTAMP)
+				CONSTRAINT survDebSurv_post CHECK (dateDebSurv <= CURRENT_TIMESTAMP),
+				CONSTRAINT dateFinSurv_nNull_post 
+					CHECK (dateFinSurv <= CURRENT_TIMESTAMP)
 );
 
 
@@ -109,15 +93,16 @@ CREATE TABLE Hopital(
                 capaciteMax INTEGER NOT NULL,
                 nom VARCHAR(50) NOT NULL,
                 tauxMax REAL NOT NULL,
-                idAdresse INTEGER NOT NULL,
                 placeOccupe INTEGER NOT NULL,
                 placeLibre INTEGER NOT NULL,
+				adresseh VARCHAR(1000),
+				iddep INTEGER NOT NULL,
                 CONSTRAINT hopital_pk PRIMARY KEY (idHp),
-				CONSTRAINT tauxMax_positif CHECK (tauxMax >= 0 AND tauxMax <= 100),
-				CONSTRAINT capaciteMax_positive CHECK (capaciteMax > 0),
-				CONSTRAINT placeLibre_positive CHECK (placeLibre >= 0),
-				CONSTRAINT placeOccupe_positive CHECK (placeOccupe >= 0),
-				CONSTRAINT capaciteMax_grande CHECK (placeLibre + placeOccupe = capaciteMax)
+		CONSTRAINT tauxMax_positif CHECK (tauxMax >= 0 AND tauxMax <= 100),
+		CONSTRAINT capaciteMax_positive CHECK (capaciteMax > 0),
+		CONSTRAINT placeLibre_positive CHECK (placeLibre >= 0),
+		CONSTRAINT placeOccupe_positive CHECK (placeOccupe >= 0),
+		CONSTRAINT capaciteMax_grande CHECK (placeLibre + placeOccupe = capaciteMax)
 );
 
 -- 
@@ -133,32 +118,31 @@ CREATE TABLE hospitalisation(
                 numss BIGINT NOT NULL,
                 dateDebut TIMESTAMP NOT NULL,
                 dateFin TIMESTAMP ,
-               CONSTRAINT hospitalisation_pk PRIMARY KEY (idHospitalisation),
-	CONSTRAINT dateDebut_post CHECK (dateDebut <= CURRENT_TIMESTAMP ), 
-	CONSTRAINT dateFin_nNull_post CHECK (dateFin <>(null)AND dateFin <= CURRENT_TIMESTAMP ) 
+               	CONSTRAINT hospitalisation_pk PRIMARY KEY (idHospitalisation),
+		CONSTRAINT dateDebut_post CHECK (dateDebut <= CURRENT_TIMESTAMP ),-- date de début est antérieure à la date d'aujourd'hui
+		CONSTRAINT dateFin_nNull_post CHECK (dateFin <= CURRENT_TIMESTAMP ) --date de fin est soit NULL soit antérieure à la date d'aujourd'hui
 );
 
 
 ALTER SEQUENCE hospitalisation_idhospitalisation_seq OWNED BY hospitalisation.idHospitalisation;
 
+
+
+CREATE TABLE utilisateur (
+  	iduser SERIAL,
+  	nom VARCHAR(50) NOT NULL,
+  	prenom VARCHAR(50) NOT NULL,
+  	mail VARCHAR(250) NOT NULL,
+  	metier INTEGER NOT NULL, 
+  	motdp VARCHAR(512) NOT NULL,
+	idhp INTEGER ,
+  	CONSTRAINT iduser_pk PRIMARY KEY (iduser)
+);
+
+
+
+
 -- les contraintes des clès étrangères 
-ALTER TABLE adresse 
-ADD CONSTRAINT departement_adresse_fk FOREIGN KEY (idDep) REFERENCES Departement (idDep)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE Hopital
-ADD CONSTRAINT adresse_hopital_fk FOREIGN KEY (idAdresse) REFERENCES adresse (idAdresse)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
-
-ALTER TABLE Patient 
-ADD CONSTRAINT adresse_patient_fk FOREIGN KEY (idAdresse) REFERENCES adresse (idAdresse)
-ON DELETE NO ACTION
-ON UPDATE NO ACTION
-NOT DEFERRABLE;
 
 ALTER TABLE surveillance 
 ADD CONSTRAINT patient_surveillance_f FOREIGN KEY (numss) REFERENCES Patient (numss)
@@ -184,7 +168,19 @@ ON DELETE NO ACTION
 ON UPDATE NO ACTION
 NOT DEFERRABLE;
 
-	
+
+
+ALTER TABLE Hopital
+ADD CONSTRAINT departement_hopital_fk FOREIGN KEY (idDep) REFERENCES departement (idDep)
+ON DELETE NO ACTION
+ON UPDATE NO ACTION
+NOT DEFERRABLE;
+
+ALTER TABLE utilisateur
+ADD CONSTRAINT hopital_utilisateur_fk FOREIGN KEY (idHp) REFERENCES hopital (idHp)
+ON DELETE NO ACTION
+ON UPDATE NO ACTION
+NOT DEFERRABLE;
 
 	
 -- modifier les tables pour qu'elles prennent en compte les contraintes associées aux domaines définis
@@ -196,5 +192,13 @@ ALTER COLUMN genre TYPE dom_genre;
 ALTER TABLE historiqueEtatP
 ALTER COLUMN historiqueEtat TYPE dom_historiqueEtat;
 
-ALTER TABLE adresse
-ALTER COLUMN numero TYPE dom_entier_positif ;
+
+
+
+
+
+
+
+
+
+

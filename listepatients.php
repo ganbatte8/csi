@@ -1,9 +1,21 @@
 
 <?php
+//Connexion à la BDD
+$dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
+    or die('Connexion impossible : ' . pg_last_error());
+
+
+
 include('includes/includes_theme/includes_up.php');
 if ($_SESSION['metier'] != 0 ) {
     header('Location: /erreur.php');
 }
+
+
+$query = "SELECT * FROM patient;";
+$result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
+
+
 
 ?>
 
@@ -12,6 +24,66 @@ if ($_SESSION['metier'] != 0 ) {
 <div id="content-wrapper">
 
     <div class="container-fluid">
+    <div class="col-xl-6">
+                                <div class="card mb-4">
+                                    <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Bar Chart Example</div>
+                                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-header"><i class="fas fa-table mr-1"></i>DataTable Example</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Numéro de sécurité social</th>
+                                                <th>Prénom</th>
+                                                <th>Nom</th>
+                                                <th>État santé</th>
+                                                <th>État de surveillance</th>
+                                                <th>Date de naissance</th>
+                                                <th>Genre</th>
+                                                <th>Numéro de téléphone</th>
+                                                <th>Adresse</th>
+                                                <th>Email</th>
+                                            </tr>
+                                        </thead>
+                                        <!--inserer liste patients-->
+                                        <tbody>
+                                        <?php
+                                        while ($row = pg_fetch_row($result)){
+                                          echo '<tr>';
+                                          for ($i = 0; $i < count($row); $i++){
+                                              echo '<td>'.$row[$i]." ";
+                                          }
+                                          echo "</tr>";
+                                        }
+                                        ?>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Numéro de sécurité social</th>
+                                                <th>Prénom</th>
+                                                <th>Nom</th>
+                                                <th>État santé</th>
+                                                <th>État de surveillance</th>
+                                                <th>Date de naissance</th>
+                                                <th>Genre</th>
+                                                <th>Numéro de téléphone</th>
+                                                <th>Adresse</th>
+                                                <th>Email</th>
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                            
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
         
     </div>
     <!-- /.container-fluid -->
