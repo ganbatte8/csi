@@ -44,7 +44,8 @@ CREATE TABLE Patient(
     genre dom_genre NOT NULL,
     numTelephone NUMERIC,
 	adressep VARCHAR(1000),
-    email VARCHAR(250), --on considère qu'un mineur pourra utiliser l'adresse de ses parents et un patient il peut ne pas avoir de mail
+    email VARCHAR(250),
+    iddep INTEGER NOT NULL, --on considère qu'un mineur pourra utiliser l'adresse de ses parents et un patient il peut ne pas avoir de mail
     CONSTRAINT patient_pk PRIMARY KEY (numss),
 	CONSTRAINT dateNaissance_anterieur CHECK (dateNaissance < CURRENT_TIMESTAMP) 
 );
@@ -174,6 +175,12 @@ NOT DEFERRABLE;
 
 ALTER TABLE utilisateur
 ADD CONSTRAINT hopital_utilisateur_fk FOREIGN KEY (idHp) REFERENCES hopital (idHp)
+ON DELETE NO ACTION
+ON UPDATE NO ACTION
+NOT DEFERRABLE;
+
+ALTER TABLE patient
+ADD CONSTRAINT patient_id_departement FOREIGN KEY (iddep) REFERENCES departement (iddep)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION
 NOT DEFERRABLE;

@@ -32,13 +32,15 @@ if ($_POST) {
   } else { // Si le compte est vrai
 
     session_start(); // On démarre le système de session PHP
-
+    
+    print_r($data_user);
     // On enregistre les données de l'utilisateur dans la variables $_SESSION
     $_SESSION['iduser'] = $data_user[0]['iduser'];
     $_SESSION['nom'] = $data_user[0]['nom'];
     $_SESSION['prenom'] = $data_user[0]['prenom'];
     $_SESSION['mail'] = $data_user[0]['mail'];
     $_SESSION['metier'] = $data_user[0]['metier'];
+    $_SESSION['idhp'] = $data_user[0]['idhp'];
 
     header('Location: /index.php'); // On redirige l'utilisateur sur la page d'accueil.
 

@@ -7,59 +7,43 @@ if ($_SESSION['metier'] != 0) {
     header('Location: /erreur.php');
 }
 
+//ajouter liste des département dans la la liste de choix
+$query = 'SELECT * FROM departement';
+$result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
+while ($data_Departement[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
+array_pop($data_Departement);
+
+
+
 
 $query = "";
 
-echo "<table>";
-foreach ($_POST as $key => $value) {
-    echo "<tr>";
-    echo "<td>";
-    echo $key;
-    echo "</td>";
-    echo "<td>";
-    echo $value;
-    echo "</td>";
-    echo "</tr>";
-}
-echo "</table>";
-if (isset($_POST['sendfeedback'])){
-    echo "sendfeedback isset !";
-}
-if (isset($_POST['prenom'])){
-    echo "prenom isset !";
-}
-if (isset($_POST['sendfeedback'],$_POST['prenom'])){
-    echo "both isset !";
-}
-if (isset($_POST['sendfeedback'], $_POST['prenom'],$_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email'])){
-    if ($_POST['genre'] == 'Homme'){
+if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email'], $_POST['iddep'])) {
+    echo "bonjour";
+    echo $_POST['iddep'];
+    if ($_POST['genre'] == 'Homme') {
         $_POST['genre'] = 'H';
-    }
-    elseif ($_POST['genre'] == 'Femme'){
+    } elseif ($_POST['genre'] == 'Femme') {
         $_POST['genre'] = 'F';
-    }
-    elseif ($_POST['genre'] == 'Autre'){
+    } elseif ($_POST['genre'] == 'Autre') {
         $_POST['genre'] = 'A';
     }
-    echo "helloooooooooooooooo";
-    $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email) VALUES ( {$_POST['numss']}, '{$_POST['prenom']}', '{$_POST['nom']}', 'aucun symptôme','quarantaine', '{$_POST['datenaissance']}', '{$_POST['genre']}', {$_POST['numtelephone']}, '{$_POST['adressep']}', '{$_POST['email']}');";
-    
-    // $result = pg_prepare($dbconn, "my_query", $query);
-    // echo "avant header";
-    // $result = pg_execute($dbconn,"my_query");
-    // header('Location: listepatients.php');
-    // echo "apres header";
+    $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email, iddep) VALUES ( {$_POST['numss']}, '{$_POST['prenom']}', '{$_POST['nom']}', 'aucun symptôme','quarantaine', '{$_POST['datenaissance']}', '{$_POST['genre']}', {$_POST['numtelephone']}, '{$_POST['adressep']}', '{$_POST['email']}','{$_POST['iddep']}');";
+
     if (pg_query($dbconn, $query)) {
         header('Location: /listepatients.php');
-      }
-    
+    }
 }
 
 
 
 
 ?>
+<div id="content-wrapper">
+<div class="container-fluid">
 
+<h1>Ajouter un patient</h1>
+    <hr>
 
 
 <form action="/ajouter_patient.php" method="post">
@@ -100,22 +84,44 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'],$_POST['nom'], $_POST['datena
         <label for="email">Adresse mail</label>
         <input type="text" class="form-control" id="email" name="email" placeholder="truc@gmail.com">
     </div>
-    <button type="submit" id="sendfeedback" name="sendfeedback" class="btn btn-primary">Ajout patient</button>
+    <div class="form-group">
+        <label for="iddep">Numéro du Département</label>
+        <select id="iddep" name="iddep" class="form-control">
+            <?php
+            // query SQL pour recuperer la liste des departements dans la base
+            $query_result = pg_query($dbconn, "SELECT iddep, nomDep FROM departement;");
+            // echo out options :
+            while ($row = pg_fetch_row($query_result)) {
+                echo "<option value=" . $row[0] . ">" . $row[1] . "</option>";
+            }
+            ?>
 
+        </select>
+    </div>
+    <center><button type="submit" id="sendfeedback" name="sendfeedback" class="btn btn-primary">Ajout patient</button></center>
+
+    <br>
+    <br><br><br><br>
 
 </form>
+
+</div>
+<!-- /.container-fluid -->
 
 
 
 <!-- Footer -->
 
-<footer class="">
-    <div class="container my-auto position">
+<footer class="sticky-footer">
+    <div class="container my-auto">
         <div class="copyright text-center my-auto">
-            <span>Copyright © Projet universitaire L3 MIASHS - MIAGE : Conception de Systèmes d'Information 2020</span>
+            <span>Copyright © Projet universitaire L3 MIASHS - MIAGE : Conception de Systèmes d'Information 2019</span>
         </div>
     </div>
 </footer>
+
+
+</div>
 <!-- /.content-wrapper -->
 
 <?php

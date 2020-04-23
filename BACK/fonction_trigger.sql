@@ -109,7 +109,7 @@ BEGIN
 	UPDATE Hopital 
 	SET placeOccupe = placeOccupe + 1,
 	    placelibre= placelibre - 1
-	WHERE Hopital.idHp = idHp;
+	WHERE Hopital.idHp = p_idHp;
 END;
 $body$
 
@@ -185,14 +185,12 @@ BEGIN
 	nb2 = NEW.capacitemax;
 	nb3 = (nb1::DECIMAL / nb2);
 	tot = nb3 * 100;
-	/*
 	RAISE NOTICE 'place occupe : % ', nb1;
 	RAISE NOTICE	'capacite max : % ', nb2;
 	RAISE NOTICE	'taux max : % ', taux;
 	RAISE NOTICE	'total nb3 = nb1/nb2 = %', nb3;
 	RAISE NOTICE	'taux actuel nb3*100 = % ',tot;
 	RAISE NOTICE 	'le taux est % ', taux;
-	*/
 	IF(tot >= taux)
 	THEN
 		RAISE NOTICE 'Alerte : le taux maximal de l''hopital est atteint une alerte doit être lancé';
@@ -203,8 +201,7 @@ $after_trigger_tauxmax$
 LANGUAGE plpgsql;
 
 CREATE TRIGGER after_trigger_tauxmax AFTER INSERT OR UPDATE
-ON Hopital
-FOR EACH ROW EXECUTE PROCEDURE trigger_tauxmax();
+ON Hopital EXECUTE PROCEDURE trigger_tauxmax();
 ---------------------------------------------------
 
 --etatSurveillance: un patient ne peut pas passer de “mort” à “guéri” (dynamique forte)

@@ -1,5 +1,5 @@
 <?php
-include('includes/includes_theme/includes_up.php');
+include('../includes/includes_theme/includes_up.php');
 
 
 function get_lundi_dimanche_from_week($week, $year) {
@@ -336,12 +336,12 @@ while($data_demandes_derogations[] = pg_fetch_array($result, NULL, PGSQL_ASSOC))
     <!-- /.content-wrapper -->
 
     <?php
-    include('includes/includes_theme/includes_down.php');
+    include('../includes/includes_theme/includes_down.php');
     ?>
 
       <!-- Page level plugin JavaScript-->
-  <script src="/includes/vendor/datatables/jquery.dataTables.js"></script>
-  <script src="/includes/vendor/datatables/dataTables.bootstrap4.js"></script>
+  <script src="../includes/vendor/datatables/jquery.dataTables.js"></script>
+  <script src="../includes/vendor/datatables/dataTables.bootstrap4.js"></script>
 
   <!-- Demo scripts for this page-->
-  <script src="/includes/js/demo/datatables-demo.js"></script>
+  <script src="../includes/js/demo/datatables-demo.js"></script>
