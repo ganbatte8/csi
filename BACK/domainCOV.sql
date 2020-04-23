@@ -39,16 +39,13 @@ CREATE DOMAIN dom_historiqueEtat AS text
 		OR VALUE = 'inconscient'
 		OR VALUE = 'décédé'
 		OR VALUE = 'fièvre et problèmes respiratoires'
-		
-	
 );
 
 -- Domaine pour les attributs qui ont le même type et les mêmes contraintes
 
 CREATE DOMAIN dom_entier_positif AS INTEGER
 	CONSTRAINT dom_entier_positif
-	 CHECK (VALUE >= 0);
-
+	CHECK (VALUE >= 0);
 
 
 ---vérifie si le domaine associé à la table testcontamination est positif ou négatif

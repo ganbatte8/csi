@@ -1,0 +1,50 @@
+(0) Peut-on forcer la mise en place d'un test de contamination des qu'un patient est hospitalise, comme le suggere l'enonce ?
+Surement cote applicatif : toute hospitalisation devra etre renseignee egalement avec les resultats d'un test de contamination ?
+Ne vaudrait-il pas mieux mettre les resultats du test de contamination dans la table hospitalisation plutot que de faire une table testcontamination alors ?
+(1) Pour le moment on n'a aucune fonction qui permet d'inserer ou de modifier une adresse. Ce serait utile pour un medecin de rentrer l'adresse d'un patient lorsqu'il ajoute ou modifie les informations d'un patient. En particulier je ne sais pas que le commentaire "AJOUTER LE RESTE" dans la fonction ajouter_patient voulait dire.
+
+Qu'est-ce que le medecin va pouvoir renseigner ou modifier manuellement a propos du patient ?
+Je pense qu'il devrait pouvoir modifier manuellement presque tous les attributs d'un patient:
+numss BIGINT, prenom VARCHAR, nom VARCHAR, dateNaissance DATE, genre CHAR, numTelephone NUMERIC, email VARCHAR, idAdresse INTEGER,
+les informations de son adresse aussi (et donc eventuellement le medecin peut inserer une adresse par ce biais);
+
+pour l'etatSurveillance et l'etatSante je me demande ce qu'il serait autorise de faire.
+forcer_coherence_surv_sante() implemente une contrainte statique forte de coherence entre les deux valeurs.
+Je pense que l'etat de sante est toujours a renseigner/modifier manuellement par un medecin, et que l'etat de surveillance est toujours a renseigner/modifier automatiquement en fonction de l'etat de sante.
+* dans tous les cas, si on change l'etat de sante, ou qu'on insere un patient avec un certain etat de sante, alors il faut faire une insertion d'etat de sante dans la table historiqueEtatP. (trigger ?)
+* un changement d'etat de sante peut entrainer une hospitalisation. Lorsqu'on insere une hospitalisation, il faut renseigner aussi le test de contamination, mettre a jour les places de l'hopital, modifier l'etat de surveillance du patient a "hospitalise", et eventuellement inserer une nouvelle surveillance si le patient n'etait pas surveille (cela peut se produire si un patient etait considere comme gueri, mais qu'il a demande a un medecin de l'inserer dans un hopital parce qu'il a a nouveau des problemes respiratoires. Si vous considerez que la creation de cette surveillance ne sert a rien, je pense que ca veut dire que la table Surveillance n'apporte rien de plus qu'un simple attribut du patient, car je n'imagine pas d'autre scenario ou on redemarrerait une surveillance pour un patient, et donc un historique pour les surveillances ne servirait a rien)
+* lorsqu'on retire un patient d'un hopital, il faut mettre a jour les places, dater la fin d'hospitalisation, dater la fin de surveillance, mettre a jour l'etat de surveillance a "gueri".
+* lorsqu'un patient decede, il faut eventuellement le retirer d'un hopital (et tout ce que ca entraine ci-dessus), et mettre a jour l'etat de surveillance a "mort".
+pour faire court je note les etats de sante (as, f, fps, i, d). Considerons les 16 transformations envisageables d'etatSante, avec ce que j'ai decrit ci-dessus on peut traiter tous les cas ainsi :
+
+as --> f : rien de special (je ne mentionne pas l'insertion dans historiqueEtatP)
+as --> fps : insertion hospitalisation (et tout ce que ca entraine...)
+as --> i : insertion hospitalisation
+as --> d : deces
+
+f --> as : retirer de l'hopital
+f --> fps : hospitalisation si pas hospitalise
+f --> i : hospitalisation si pas hospitalise
+f --> d : deces
+
+fps --> as : retirer de l'hopital
+fps --> f : rien de special
+fps --> i : rien de special
+fps --> d : deces
+
+d --> quoi que ce soit : impossible
+
+On peut aussi considerer le cas de l'insertion d'un patient quand il n'y a pas d'etatSante existant precedemment, ce qui donnerait 4 autres cas a considerer, mais on peut eventuellement forcer le fait qu'un patient insere demarre avec un etatSante qui est aucun symptome, et le medecin le modifie apres s'il le veut, selon les regles ci-dessus. 
+Cependant s'il veut inserer un nouveau patient, dire qu'il a de la fievre, et dire qu'il est hospitalise, alors comme cet etat de sante ne force pas une hospitalisation, il lui faudrait un moyen de pouvoir demander a l'application a renseigner une hospitalisation. Ou alors on considere que l'on hospitalise jamais des patients qui n'ont jamais ete renseignes dans la base comme ayant un etat de sante fps ou inconscient, ce qui semble plus simple.
+
+Globalement je pense qu'on gagnerait a clarifier ce qu'un medecin peut faire "fondamentalement". Seul les medecins peuvent modifier ce qu'il y a dans la base (si j'ai bien suivi), et la plupart de ces modifications, si ce n'est toutes, sont entrainees automatiquement uniquement par la modification d'une partie des informations d'un patient ?
+
+(2) Quand-est-ce qu'une surveillance est creee ? Je pense qu'une surveillance est cree ssi on insere un patient dans la base, ou que l'on hospitalise un patient qui n'est plus surveille comme je l'ai mentionne dans (1).
+Est-ce qu'on empechera bien d'avoir plusieurs surveillances en cours pour un patient ?
+Memes questions pour les hospitalisations d'un patient ? Je pense qu'une hospitalisation se fait toujours simultanement avec le changement d'etat de sante d'un patient.
+(3) inserer_patient_hopital : empeche-t-on deja l'insertion dans un hopital qui est plein ?
+(4) fonction liste_a_contacter : la fonction fait un select pour trouver les patients surveilles d'un departement a contacter, mais rien d'autre avec.
+--> on vire la fonction et on fait juste le select depuis le PHP ?
+(5) a-t-on une alerte lorsque le seuil de contamination d'un departement est atteint ? (a priori non puisqu'on n'avait aucune information sur les resultats de la contamination en elle-meme ?) On l'implemente cote application, ou bien on fait un trigger qui fait un raise notice comme pour l'alerte du taux max d'un hopital, que l'on ne peut probablement pas exploiter ?
+D'ailleurs pour cette raison on voudra probablement supprimer la fonction trigger_tauxmax() par une requete depuis l'application ?
+(6) comment on fait les processus journaliers ? Lesquels seraient a faire ?

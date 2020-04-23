@@ -100,3 +100,9 @@ INSERT INTO departement (idDep, nbHabitant, seuilPersContamine, nomDep) VALUES
 (973, 269352, 5, 'Guyane'),
 (974, 852924, 5, 'La Réunion'),
 (976, 256518, 5, 'Mayotte');
+
+
+
+INSERT INTO patient (numss,prenom,nom,etatsante,etatsurveillance,datenaissance,genre,numtelephone,email) VALUES 
+(01234567890001, 'joel', 'joestar', 'aucun symptôme', 'quarantaine', '2000-20-20', 'H', 0601020304, 'joel@joestar.com'),
+(0123456789321, 'truc', 'machin', 'aucun symptôme', 'quarantaine', '2000-05-20', 'H', 0601020304, 'trucmachin@google.com');
