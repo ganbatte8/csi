@@ -26,7 +26,7 @@ $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
                 <div class="btn btn-success mb-2" id="bloc2" onClick="window.location.href='ajouter_patient.php';">
                     <label>Ajouter patient</label>
                 </div>
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <table class="table table-bordered table-striped table-hover table-sm" id="dataTable" width="100%" cellspacing="0">
                     <thead class="thead-light">
                         <tr>
                             <th>Numéro de sécurité social</th>
