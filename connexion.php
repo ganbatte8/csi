@@ -1,7 +1,7 @@
 <?php
 //Connexion à la BDD
 $dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
-    or die('Connexion impossible : ' . pg_last_error());
+  or die('Connexion impossible : ' . pg_last_error());
 
 //S'il y a une demande de connexion (formulaire)
 if ($_POST) {
@@ -9,7 +9,7 @@ if ($_POST) {
   // SEL pour le mot de passe
   $sel = "EiHqBPuoTCW0BszhQamuxOwsBIDO6ZZUSeR5WhhqKxQKUFMrUgQAXYc2STrlkF9dSTleOMLTFSX2bgoty9JALP0rC5uoaiz7HUm4cPNN63NLfMPmhhvww1STBWAZ1ASTUJK2kRe9mLX9udguDx3Bt4bzN9jatM5o";
 
-  $pwdSel = $_POST['mdp'] . $sel;// Concaténation du mot de passe
+  $pwdSel = $_POST['mdp'] . $sel; // Concaténation du mot de passe
 
   $mdp = hash('sha512', $pwdSel); // HASH
 
@@ -18,16 +18,17 @@ if ($_POST) {
   $query = "SELECT * FROM utilisateur WHERE mail = '$_POST[adresseEmail]' AND motdp = '$mdp'";
   $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 
-  while($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_user); // On trie les données sous forme de tableau
+  while ($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
+  array_pop($data_user); // On trie les données sous forme de tableau
 
   $verif = count($data_user); // On compte le résultat
 
   if ($verif == 0) { // S'il n'y a pas de compte avec ces identifiants
-    ?>
+?>
     <div class="alert alert-warning">
-      Impossible de trouver un compte avec les identifiants que vous avez donnés. Merci de réessayer. 
+      Impossible de trouver un compte avec les identifiants que vous avez donnés. Merci de réessayer.
     </div>
-    <?php
+<?php
   } else { // Si le compte est vrai
 
     session_start(); // On démarre le système de session PHP
@@ -42,7 +43,6 @@ if ($_POST) {
     header('Location: /index.php'); // On redirige l'utilisateur sur la page d'accueil.
 
   }
-
 }
 
 ?>
@@ -75,7 +75,7 @@ if ($_POST) {
   <div class="container">
     <div class="card card-login mx-auto mt-5">
       <div class="card-header">Connexion</div>
-      <div class="card-body"  style="margin-bottom: 13px">
+      <div class="card-body" style="margin-bottom: 13px">
         <form method="post" action="/connexion.php">
           <div class="form-group">
             <div class="form-label-group">
@@ -90,21 +90,21 @@ if ($_POST) {
             </div>
           </div>
           <button style="height: 40px;" type="submit" class="btn btn-primary btn-block" href="/connexion.php">Connexion</a>
-          </form>
-          <div class="text-center">
-            <a class="d-block small mt-3" href="inscription.php">Inscription</a>
-          </div>
+        </form>
+        <div class="text-center">
+          <a class="d-block small mt-3" href="inscription.php">Inscription</a>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="includes/vendor/jquery/jquery.min.js"></script>
-    <script src="includes/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap core JavaScript-->
+  <script src="includes/vendor/jquery/jquery.min.js"></script>
+  <script src="includes/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Core plugin JavaScript-->
-    <script src="includes/vendor/jquery-easing/jquery.easing.min.js"></script>
+  <!-- Core plugin JavaScript-->
+  <script src="includes/vendor/jquery-easing/jquery.easing.min.js"></script>
 
-  </body>
+</body>
 
-  </html>
+</html>

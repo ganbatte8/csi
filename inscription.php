@@ -1,47 +1,47 @@
 <?php
 $dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
-or die('Connexion impossible : ' . pg_last_error());
+  or die('Connexion impossible : ' . pg_last_error());
 
 if (isset($_POST['MdP'])) {
-//Vérification mot de passe
-if ($_POST['MdP'] != $_POST['confirmerMdP']) { 
-	?>
-  <div class="alert alert-warning">
-    Les mots de passe saisis ne sont pas identiques ! 
-  </div>
-  <?php
-} else {
+  //Vérification mot de passe
+  if ($_POST['MdP'] != $_POST['confirmerMdP']) {
+?>
+    <div class="alert alert-warning">
+      Les mots de passe saisis ne sont pas identiques !
+    </div>
+<?php
+  } else {
 
 
-  $sel = "EiHqBPuoTCW0BszhQamuxOwsBIDO6ZZUSeR5WhhqKxQKUFMrUgQAXYc2STrlkF9dSTleOMLTFSX2bgoty9JALP0rC5uoaiz7HUm4cPNN63NLfMPmhhvww1STBWAZ1ASTUJK2kRe9mLX9udguDx3Bt4bzN9jatM5o";
+    $sel = "EiHqBPuoTCW0BszhQamuxOwsBIDO6ZZUSeR5WhhqKxQKUFMrUgQAXYc2STrlkF9dSTleOMLTFSX2bgoty9JALP0rC5uoaiz7HUm4cPNN63NLfMPmhhvww1STBWAZ1ASTUJK2kRe9mLX9udguDx3Bt4bzN9jatM5o";
 
-  $pwdSel = $_POST['MdP'] . $sel;// Concaténation du mot de passe
+    $pwdSel = $_POST['MdP'] . $sel; // Concaténation du mot de passe
 
-  $mdp = hash('sha512', $pwdSel); // HASH
-  
+    $mdp = hash('sha512', $pwdSel); // HASH
 
-  $query = "";
-  if(isset($_POST['InputHopital'])){
+
+    $query = "";
+    if (isset($_POST['InputHopital'])) {
       $query =  "INSERT INTO utilisateur (nom, prenom, mail, metier, motdp, idhp) 
-      VALUES ('$_POST[NomDeFamille]','$_POST[Prenom]','$_POST[Email]','$_POST[InputMetier]','$mdp', '$_POST[InputHopital]');";    
-  } else{
-    $query =  "INSERT INTO utilisateur (nom, prenom, mail, metier, motdp) 
+      VALUES ('$_POST[NomDeFamille]','$_POST[Prenom]','$_POST[Email]','$_POST[InputMetier]','$mdp', '$_POST[InputHopital]');";
+    } else {
+      $query =  "INSERT INTO utilisateur (nom, prenom, mail, metier, motdp) 
     VALUES ('$_POST[NomDeFamille]','$_POST[Prenom]','$_POST[Email]','$_POST[InputMetier]','$mdp');";
-  }
-  
-  
-  
-  if(pg_query($dbconn,$query)) {
-    header('Location: /connexion.php');
-  }
+    }
 
-}
+
+
+    if (pg_query($dbconn, $query)) {
+      header('Location: /connexion.php');
+    }
+  }
 }
 
 
 $query = 'SELECT * FROM hopital';
 $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
-while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data_Hopital);
+while ($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
+array_pop($data_Hopital);
 ?>
 
 
@@ -92,14 +92,14 @@ while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($
           <div class="form-group">
             <div class="form-row">
               <div class="col-md-6">
-               <select name="InputMetier" class="form-control" id="InputMetier" required style="height: 52px;" required="required">
-                 <option value=-1> -- Merci de sélectionner votre statut --</option>
-                 <option value=0>Médecin</option>
-                 <option value=1>Représentant Nationaux/Départementaux</option>
-                 <?php 
-                 
-                 
-                 /*
+                <select name="InputMetier" class="form-control" id="InputMetier" required style="height: 52px;" required="required">
+                  <option value=-1> -- Merci de sélectionner votre statut --</option>
+                  <option value=0>Médecin</option>
+                  <option value=1>Représentant Nationaux/Départementaux</option>
+                  <?php
+
+
+                  /*
                  foreach($data_TypePers as $TypePers)
                   { ?>
                     <option value="<?=$TypePers['id_type_personne']?>"><?=$TypePers['nom_type_personne']?></option>
@@ -111,16 +111,15 @@ while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($
 
               </div>
               <div class="col-md-6">
-               <select name="InputHopital" class="form-control" id="InputHopital" required style="height: 52px;" required="required">
-                 <option value=-1> -- Merci de sélectionner un hôpital --</option>
-                 <?php 
-                 
-                 
-                 
-                 foreach($data_Hopital as $Hopital)
-                  { ?>
-                    <option value="<?=$Hopital['idhp']?>"><?=$Hopital['nom']?> <?=$Hopital['adresseh']?></option>
-                    <?php
+                <select name="InputHopital" class="form-control" id="InputHopital" required style="height: 52px;" required="required">
+                  <option value=-1> -- Merci de sélectionner un hôpital --</option>
+                  <?php
+
+
+
+                  foreach ($data_Hopital as $Hopital) { ?>
+                    <option value="<?= $Hopital['idhp'] ?>"><?= $Hopital['nom'] ?> <?= $Hopital['adresseh'] ?></option>
+                  <?php
                   }
 
                   ?>
@@ -153,36 +152,36 @@ while($data_Hopital[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($
           </div>
 
           <button style="height: 40px;" type="submit" class="btn btn-primary btn-block" href="/connexion.php">S'enregistrer</a>
-          </form>
-          <div class="text-center">
-            <a class="d-block small mt-3" href="connexion.php">Page de connexion</a>
-          </div>
+        </form>
+        <div class="text-center">
+          <a class="d-block small mt-3" href="connexion.php">Page de connexion</a>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="includes/vendor/jquery/jquery.min.js"></script>
-    <script src="includes/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap core JavaScript-->
+  <script src="includes/vendor/jquery/jquery.min.js"></script>
+  <script src="includes/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <script type="text/javascript"> 
-      $(function() {
-          $('#InputMetier').on('change', function(e) {
-              select_val = $(this).val();
-              if(select_val == 0) {
-                $('#InputHopital').removeAttr("disabled");
-              } else {
-                $('#InputHopital').prop('disabled', 'disabled');
-              };
-          });
+  <script type="text/javascript">
+    $(function() {
+      $('#InputMetier').on('change', function(e) {
+        select_val = $(this).val();
+        if (select_val == 0) {
+          $('#InputHopital').removeAttr("disabled");
+        } else {
+          $('#InputHopital').prop('disabled', 'disabled');
+        };
       });
-    </script>
+    });
+  </script>
 
-    <!-- Core plugin JavaScript-->
-    <script src="includes/vendor/jquery-easing/jquery.easing.min.js"></script>
+  <!-- Core plugin JavaScript-->
+  <script src="includes/vendor/jquery-easing/jquery.easing.min.js"></script>
 
-    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
-    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
-  </body>
+  <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+  <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+</body>
 
-  </html>
+</html>

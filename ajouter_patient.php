@@ -1,18 +1,13 @@
 <?php
-//Connexion à la BDD
-// $dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
-    // or die('Connexion impossible : ' . pg_last_error());
 
+include('includes/includes_theme/includes_up.php'); 
+// initialise $dbconn et $result. Il faudra ensuite inclure includes_down.php
 
-
-include('includes/includes_theme/includes_up.php'); // initialise $dbconn
 if ($_SESSION['metier'] != 0) {
     header('Location: /erreur.php');
 }
 
 
-// $query = "SELECT * FROM patient;";
-// $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 $query = "";
 if (isset($_POST['sendfeedback'])){
     //, $_POST['prenom'],$_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email']
@@ -31,9 +26,7 @@ if (isset($_POST['sendfeedback'])){
     // Prépare une requête pour l'exécution
     $result = pg_prepare($dbconn, "my_query", $query);
     header('Location: listepatients.php');
-   
     $result = pg_execute($dbconn, "my_query");
-
 }
 
 
@@ -88,19 +81,20 @@ if (isset($_POST['sendfeedback'])){
 
 
 
-<!-- Sticky Footer -->
+<!-- Footer -->
 
 <footer class="">
     <div class="container my-auto position">
         <div class="copyright text-center my-auto">
-            <span>Copyright © Projet universitaire L3 MIASHS - MIAGE : Conception de Systèmes d'Information 2019</span>
+            <span>Copyright © Projet universitaire L3 MIASHS - MIAGE : Conception de Systèmes d'Information 2020</span>
         </div>
     </div>
 </footer>
 <!-- /.content-wrapper -->
 
 <?php
-include('includes/includes_theme/includes_down.php'); // free $result
+// free $result et $dbconn definis dans init.php. init.php est inclus dans includes_up.php
+include('includes/includes_theme/includes_down.php'); 
 ?>
 
 <!-- Page level plugin JavaScript-->
