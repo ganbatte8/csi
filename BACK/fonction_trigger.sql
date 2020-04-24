@@ -22,7 +22,7 @@ THEN
 	INSERT INTO patient
 	VALUES(p_numss, p_prenom, p_nom, 'aucun symptôme', 'quarantaine', p_dateNaissance, p_genre, p_numTelephone, p_adressep, p_email, p_iddep);
 	INSERT INTO surveillance(datedebsurv,numss)
-	VALUES (CURRENT_TIMESTAMP,numss);
+	VALUES (CURRENT_TIMESTAMP,p_numss);
 END IF;
 END;
 $body$
