@@ -36,11 +36,15 @@ if (isset($_POST['preselections'])) {
 } else {
     if (isset($_POST['idhp'])) {
         if ($_POST['idhp'] != -1) {
+            $query5 = "update patient set etatsante = '$_POST[etat]', etatsurveillance = 'hospitalisé' where numss= $_POST[numss]";
+            $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
+            // ??? etatsante etatsurveillance ?
             $query4 = "select inserer_patient_hopital($_POST[idhp],$_POST[numss]) ";
             $result = pg_query($query4) or die('Échec de la requête : ' . pg_last_error());
+        } else {
+            $query5 = "update patient set etatsante = '$_POST[etat]' where numss= $_POST[numss]";
+            $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
         }
-        $query5 = "update patient set etatsante = '$_POST[etat]' where numss= $_POST[numss]";
-        $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
     }
 }
 
