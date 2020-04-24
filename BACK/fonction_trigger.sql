@@ -4,26 +4,24 @@ CREATE OR REPLACE FUNCTION ajouter_patient (
 p_numss BIGINT,
 p_prenom VARCHAR,
 p_nom VARCHAR,
-p_etatSante VARCHAR,
-p_etatSurveillance VARCHAR,
 p_dateNaissance Date,
 p_genre CHAR,
 p_numTelephone NUMERIC,
 p_adressep VARCHAR,
-p_email VARCHAR
+p_email VARCHAR,
+iddep INTEGER
 )
 	RETURNS void 
 	LANGUAGE 'plpgsql'
 	AS $body$
 BEGIN
-IF
-	p_etatSante IN ('aucun symptôme','fièvre','fièvre et problèmes respiratoires','décédé','inconscient')
-	AND p_etatSurveillance IN ( 'guéri', 'quarantaine','hospitalisé','mort')
-	AND p_genre IN ('H','F','A')
-	AND p_dateNaissance < CURRENT_TIMESTAMP 
+IF	p_genre IN ('H','F','A') AND p_dateNaissance < CURRENT_TIMESTAMP 
 THEN
+	-- on insere deux lignes : une dans la table patient, une dans la table surveillance.
 	INSERT INTO patient
-	VALUES(p_numss, p_prenom, p_nom, p_etatSante, p_etatSurveillance, p_dateNaissance, p_genre, p_numTelephone, p_adressep,p_email );
+	VALUES(p_numss, p_prenom, p_nom, 'aucun symptôme', 'quarantaine', p_dateNaissance, p_genre, p_numTelephone, p_adressep, p_email, p_iddep);
+	INSERT INTO surveillance(datedebsurv,numss)
+	VALUES (CURRENT_TIMESTAMP,numss);
 END IF;
 END;
 $body$
@@ -319,15 +317,30 @@ CREATE TRIGGER before_forcer_coherence_surv_sante BEFORE INSERT OR UPDATE
 ON patient
 FOR EACH ROW EXECUTE PROCEDURE forcer_coherence_surv_sante();
 
---------------------------------------------
 
+/*
+modele trigger (doc postgreSQL)
 
+CREATE OR REPLACE FUNCTION log_last_name_changes()
+  RETURNS trigger AS
+$BODY$
+BEGIN
+	IF NEW.last_name <> OLD.last_name THEN
+		 INSERT INTO employee_audits(employee_id,last_name,changed_on)
+		 VALUES(OLD.id,OLD.last_name,now());
+	END IF;
 
+	RETURN NEW;
+END;
+$BODY$
 
+CREATE TRIGGER last_name_changes
+  BEFORE UPDATE
+  ON employees
+  FOR EACH ROW
+  EXECUTE PROCEDURE log_last_name_changes();
 
-
-
-
+*/
 
 
 

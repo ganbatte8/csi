@@ -28,8 +28,18 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['daten
     } elseif ($_POST['genre'] == 'Autre') {
         $_POST['genre'] = 'A';
     }
-    $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email, iddep) VALUES ( {$_POST['numss']}, '{$_POST['prenom']}', '{$_POST['nom']}', 'aucun symptôme','quarantaine', '{$_POST['datenaissance']}', '{$_POST['genre']}', {$_POST['numtelephone']}, '{$_POST['adressep']}', '{$_POST['email']}','{$_POST['iddep']}');";
-
+    // $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email, iddep) VALUES ( {$_POST['numss']}, '{$_POST['prenom']}', '{$_POST['nom']}', 'aucun symptôme','quarantaine', '{$_POST['datenaissance']}', '{$_POST['genre']}', {$_POST['numtelephone']}, '{$_POST['adressep']}', '{$_POST['email']}','{$_POST['iddep']}');";
+    $query = "SELECT ajouter_patient (
+        {$_POST['numss']},
+        '{$_POST['prenom']}',
+        '{$_POST['nom']}',
+        '{$_POST['datenaissance']}',
+        '{$_post['genre']}',
+        {$_POST['numtelephone']},
+        '{$_POST['adressep']}',
+        '{$_POST['email']}',
+        {$_POST['iddep']}
+        )";
     if (pg_query($dbconn, $query)) {
         header('Location: /listepatients.php');
     }

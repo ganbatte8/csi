@@ -1,7 +1,7 @@
 
 <select id="departement" name="departement" class="form-control">
 <?php
-    // make an SQL query that fetches all the department names for the HTML select element :
+    // query SQL pour recuperer la liste des departements dans la base
     $query_result = pg_query($dbconn, "SELECT nomDep FROM departement;");
     
     // echo out all the HTML option elements so that the user can choose a department in a dropdown select list :
