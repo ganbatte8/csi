@@ -857,7 +857,7 @@ INSERT INTO hopital (capaciteMax, nom, tauxMax, placeOccupe, placeLibre, adresse
 (804, 'Zulauf, Sipes and Pollich', 32.95, 0, 804, '8 Moulton Trail', 36),
 (650, 'Ruecker, Lesch and McLaughlin', 27.77, 0, 650, '18928 Clemons Crossing', 27),
 (598, 'Watsica-Bailey', 51.66, 0, 598, '6 Sutherland Pass', 15),
-(5, 'Anderson-Renner', 98.61, 0, 5,, '73 Carioca Junction', 7),
+(5, 'Anderson-Renner', 98.61, 0, 5, '73 Carioca Junction', 7),
 (456, 'Marks-Lemke', 37.07, 0, 456, '79437 Anthes Point', 52),
 (874, 'Gorczany-Williamson', 85.0, 874, 0, '157 Manufacturers Court', 13),
 (424, 'Blanda, Kulas and Gibson', 71.18, 0, 424, '17 Morrow Way', 41),
