@@ -186,7 +186,7 @@ if ($_POST) {
         </div>
 
 
-        <center><button class="btn btn-info" type="submit" style="float: ">Validation</button></center>
+        <!-- <center><button class="btn btn-info" type="submit" style="float:" >Validation</button></center> -->
       </form>
 
     </div>

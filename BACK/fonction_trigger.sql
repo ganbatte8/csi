@@ -308,7 +308,7 @@ BEGIN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
 	ELSIF (NEW.etatSante = 'fièvre' AND NEW.etatSurveillance = 'mort') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
-	ELSIF (NEW.etatSante = 'fièvre et problèmes respiratoires' AND NEW.etatSurveillance = 'mort') THEN
+	ELSIF (NEW.etatSante = 'fièvre et problèmes respiratoires' AND NEW.etatSurveillance <> 'hospitalisé') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
 	ELSIF (NEW.etatSante = 'inconscient' AND NEW.etatSurveillance <> 'hospitalisé') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;

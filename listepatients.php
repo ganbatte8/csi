@@ -48,6 +48,13 @@ if (isset($_POST['preselections'])) {
     }
 }
 
+
+if (isset($_POST['testcontamination'])) {
+    $query_test = "UPDATE hospitalisation set testcontamination='$_POST[testcontamination]' WHERE numss=$_POST[numss]";
+    $res = pg_query($query_test) or die('Échec de la requête : ' . pg_last_error());
+}
+
+
 $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 while ($data[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
 array_pop($data);
@@ -120,14 +127,6 @@ array_pop($data_hop);
                     title: 'Dans quel hôpital ?',
                     input: 'select',
                     inputOptions: data,
-                    /* {
-                                  'aucun symptôme': 'aucun symptôme',
-                                  'fièvre': 'fièvre',
-                                  'fièvre et problèmes respiratoires': 'fièvre et problèmes respiratoires',
-                                  'décédé': 'décédé',
-                                  'inconscient': 'inconscient'
-                              },
-                              */
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
@@ -152,11 +151,39 @@ array_pop($data_hop);
                     numss: numss
                 })
                 swal(
-                    'KO !',
+                    'OK !',
                     'Le patient a bien été modifié',
                     'success'
                 )
             }
+        })
+    }
+
+
+    function testD(numss) {
+        swal({
+            title: 'Test ?',
+            input: 'select',
+            inputOptions: {
+                "positif": 'positif',
+                "négatif": 'négatif',
+            },
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Valider !',
+            cancelButtonText: "Annuler"
+        }).then(function(val) {
+            var etat = val
+                post('/listepatients.php', {
+                    testcontamination: val,
+                    numss: numss
+                })
+                swal(
+                    'OK !',
+                    'test enregistré.',
+                    'success'
+                )
         })
     }
 </script>
@@ -168,7 +195,8 @@ array_pop($data_hop);
 
 
 <div id="content-wrapper">
-
+    <div class="container-fluid">
+    
     <div class="row">
         <div class="col-lg-10">
             <h1 class="page-header">
@@ -189,7 +217,7 @@ array_pop($data_hop);
     $result_alert = pg_query($query_alert) or die('Échec de la requête : ' . pg_last_error());
     while ($arr[] = pg_fetch_array($result_alert, NULL, PGSQL_ASSOC));
     array_pop($arr);
-    if ($arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['placelibre']) {
+    if ($arr[0]['placelibre'] == 0 || $arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['placelibre']) {
         echo "<p>Attention : Le taux de remplissage de votre hôpital est critique.</p>";
     }
 
@@ -271,6 +299,11 @@ array_pop($data_hop);
                                     <td><?= $d['iddep'] ?></td>
                                     <td>
                                         <button onClick="javascript:modifPatient('<?= $d['numss'] ?>')" class="btn btn-primary" title="Modification du patient"> <i class="fas fa-pen-square"></i></i></button>
+                                        <?php
+                                        if ($checked['hop'] == "checked") { ?>
+                                        <button onClick="javascript:testD('<?= $d['numss'] ?>')" class="btn btn-warning" title="test"> <i class="fas fa-vial"></i></button>
+                                        <?php }
+                                        ?>
                                     </td>
                                 </tr>
 
