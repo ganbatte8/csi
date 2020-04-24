@@ -8,31 +8,30 @@ if ($_POST) {
 
   // SEL pour le mot de passe
   $sel = "EiHqBPuoTCW0BszhQamuxOwsBIDO6ZZUSeR5WhhqKxQKUFMrUgQAXYc2STrlkF9dSTleOMLTFSX2bgoty9JALP0rC5uoaiz7HUm4cPNN63NLfMPmhhvww1STBWAZ1ASTUJK2kRe9mLX9udguDx3Bt4bzN9jatM5o";
-
   $pwdSel = $_POST['mdp'] . $sel; // Concaténation du mot de passe
-
   $mdp = hash('sha512', $pwdSel); // HASH
-
 
   // On va chercher dans la BDD l'utilisateur
   $query = "SELECT * FROM utilisateur WHERE mail = '$_POST[adresseEmail]' AND motdp = '$mdp'";
   $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 
-  while ($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
-  array_pop($data_user); // On trie les données sous forme de tableau
+  // on recupere le resultat de la requete dans un tableau associatif. 
+  // La fonction array_pop permet de supprimer le dernier element insere, lie a l'affectation qui a interrompu la boucle while. 
+  while ($data_user[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); 
+  array_pop($data_user); 
 
-  $verif = count($data_user); // On compte le résultat
+  $verif = count($data_user); // nombre de lignes obtenues
 
-  if ($verif == 0) { // S'il n'y a pas de compte avec ces identifiants
+  if ($verif == 0) { 
 ?>
     <div class="alert alert-warning">
       Impossible de trouver un compte avec les identifiants que vous avez donnés. Merci de réessayer.
     </div>
 <?php
-  } else { // Si le compte est vrai
+  } else { 
 
     session_start(); // On démarre le système de session PHP
-    
+
     print_r($data_user);
     // On enregistre les données de l'utilisateur dans la variables $_SESSION
     $_SESSION['iduser'] = $data_user[0]['iduser'];
@@ -43,7 +42,6 @@ if ($_POST) {
     $_SESSION['idhp'] = $data_user[0]['idhp'];
 
     header('Location: /index.php'); // On redirige l'utilisateur sur la page d'accueil.
-
   }
 }
 
