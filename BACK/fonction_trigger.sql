@@ -1,5 +1,4 @@
 -- cette fonction permet d'ajouter un patient dans la base à condition qu'il n'existe pas dans la base 
--- le numéro de sécurité social empêche l'ajout au cas où le patient existe déjà
 CREATE OR REPLACE FUNCTION ajouter_patient (
 p_numss BIGINT,
 p_prenom VARCHAR,
@@ -15,7 +14,9 @@ iddep INTEGER
 	LANGUAGE 'plpgsql'
 	AS $body$
 BEGIN
+	-- on verifie des contraintes relatives a la table patient avant d'inserer :
 IF	p_genre IN ('H','F','A') AND p_dateNaissance < CURRENT_TIMESTAMP 
+	AND (SELECT COUNT(*) FROM patient WHERE numss = p_numss) = 0
 THEN
 	-- on insere deux lignes : une dans la table patient, une dans la table surveillance.
 	INSERT INTO patient

@@ -907,5 +907,3 @@ INSERT INTO hopital (capaciteMax, nom, tauxMax, placeOccupe, placeLibre, adresse
 (150, 'St. Ursula', 50, 0, 150, 'Crossbell', 90),
 (5, 'CHRU', 45, 0, 5, 'Nancy', 54),
 (100, 'St.Joseph', 20, 0, 100, '185 Rue Raymond Losserand, 75014 Paris', 75);
-
--- TODO : insertion d'un patient doit trigger une surveillance ?
