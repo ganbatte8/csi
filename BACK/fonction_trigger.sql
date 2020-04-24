@@ -103,12 +103,18 @@ CREATE OR REPLACE FUNCTION inserer_patient_hopital (p_idHp INTEGER, p_numss BIGI
 	LANGUAGE 'plpgsql'
 	AS $body$
 BEGIN
-	INSERT INTO hospitalisation(idhp,numss,datedebut)
-	VALUES(p_idHp, p_numss,CURRENT_TIMESTAMP);
-	UPDATE Hopital 
-	SET placeOccupe = placeOccupe + 1,
-	    placelibre= placelibre - 1
-	WHERE Hopital.idHp = p_idHp;
+	IF (SELECT capaciteMax FROM hopital WHERE idhp = p_idhp) > (SELECT placeOccupe FROM hopital WHERE idhp = p_idhp);
+	THEN
+		INSERT INTO hospitalisation(idhp,numss,datedebut)
+		VALUES(p_idHp, p_numss,CURRENT_TIMESTAMP);
+		UPDATE Hopital 
+		SET placeOccupe = placeOccupe + 1,
+			placelibre= placelibre - 1
+		WHERE Hopital.idHp = p_idHp;
+		UPDATE patient SET etatsurveillance = 'hospitalisé' WHERE numss = p_numss;
+	ELSE
+		RAISE NOTICE 'On n'' a pas pu hospitaliser le patient : l''hopital est plein';
+	END IF;
 END;
 $body$
 
@@ -302,7 +308,7 @@ BEGIN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
 	ELSIF (NEW.etatSante = 'fièvre' AND NEW.etatSurveillance = 'mort') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
-	ELSIF (NEW.etatSante = 'fièvre et problèmes respiratoires' AND NEW.etatSurveillance = 'mort') THEN
+	ELSIF (NEW.etatSante = 'fièvre et problèmes respiratoires' AND NEW.etatSurveillance <> 'hospitalisé') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
 	ELSIF (NEW.etatSante = 'inconscient' AND NEW.etatSurveillance <> 'hospitalisé') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;

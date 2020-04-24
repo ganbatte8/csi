@@ -53,8 +53,10 @@ CREATE DOMAIN dom_testcontamination AS text
 	CONSTRAINT dom_testcontamination
 	CHECK(
 		VALUE = 'positif'
-		OR VALUE = 'négatif' 
+		OR VALUE = 'négatif'
+        OR VALUE ='non effectué'
 );
+
 
 
 
