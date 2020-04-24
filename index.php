@@ -1,10 +1,6 @@
 <?php
 include('includes/includes_theme/includes_up.php'); // initialise $dbconn et $result. appeler includes_down.php apres
 
-// si l'utilisateur n'est pas connecte en tant que medecin alors on redirige vers la page d'erreur :
-if ($_SESSION['metier'] != 0) {
-    header('Location: /erreur.php');
-}
 
 // $query2 : pour obtenir l'iddep du medecin connecte
 $query2 = "SELECT iddep FROM hopital WHERE idhp = " . $_SESSION['idhp'] . ";";
@@ -23,17 +19,24 @@ while ($data[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
 array_pop($data);
 
 
+$query = "SELECT testcontamination FROM hospitalisation;";
+$result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
+while ($test[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
+array_pop($test);
+
+
 
 
 
 if (isset($_GET['iddep'], $_GET['genre'], $_GET['etatsante'], $_GET['test_contamination'], $_GET['etat_surveillance'])) {
-    print_r($_GET);
+    // print_r($_GET);
     $query = "SELECT * FROM patient 
+    INNER JOIN hospitalisation ON hospitalisation.numss = patient.numss 
     WHERE iddep = {$_GET['iddep']} 
     AND genre = '{$_GET['genre']}' 
     AND etatsante = '{$_GET['etatsante']}'
     AND etatsurveillance = '{$_GET['etat_surveillance']}'
-    AND testcontamination = '{$_GET['test_contamination']}'";
+    AND hospitalisation.testcontamination = '{$_GET['test_contamination']}'";
 
     $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
     while ($arr[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
@@ -206,26 +209,34 @@ if (isset($_GET['iddep'], $_GET['genre'], $_GET['etatsante'], $_GET['test_contam
                                 <th>Adresse</th>
                                 <th>Email</th>
                                 <th>Département</th>
+                                <th>Test de contamination</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                             if ($data) {
                                 foreach ($data as $d) { ?>
-                                    <tr>
-                                        <td><?= $d['numss'] ?></td>
-                                        <td><?= $d['prenom'] ?></td>
-                                        <td><?= $d['nom'] ?></td>
-                                        <td><?= $d['etatsante'] ?></td>
-                                        <td><?= $d['etatsurveillance'] ?></td>
-                                        <td><?= $d['datenaissance'] ?></td>
-                                        <td><?= $d['genre'] ?></td>
-                                        <td><?= $d['numtelephone'] ?></td>
-                                        <td><?= $d['adressep'] ?></td>
-                                        <td><?= $d['email'] ?></td>
-                                        <td><?= $d['iddep'] ?></td>
-                                    </tr>
+                                    <?php
+                                    if ($test) {
+                                        foreach ($test as $t) { ?>
+                                            <tr>
+                                                <td><?= $d['numss'] ?></td>
+                                                <td><?= $d['prenom'] ?></td>
+                                                <td><?= $d['nom'] ?></td>
+                                                <td><?= $d['etatsante'] ?></td>
+                                                <td><?= $d['etatsurveillance'] ?></td>
+                                                <td><?= $d['datenaissance'] ?></td>
+                                                <td><?= $d['genre'] ?></td>
+                                                <td><?= $d['numtelephone'] ?></td>
+                                                <td><?= $d['adressep'] ?></td>
+                                                <td><?= $d['email'] ?></td>
+                                                <td><?= $d['iddep'] ?></td>
+                                                <td><?= $t['testcontamination'] ?></td>
+                                            </tr>
                             <?php
+
+                                        }
+                                    }
                                 }
                             }
                             ?>
