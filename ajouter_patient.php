@@ -3,7 +3,7 @@
 include('includes/includes_theme/includes_up.php');
 // initialise $dbconn et $result. Il faudra ensuite inclure includes_down.php
 
-if ($_SESSION['metier'] != 0) {
+if ($_SESSION['metier'] != 0) { // metier == 0 ssi connecte en tant que medecin
     header('Location: /erreur.php');
 }
 
@@ -13,10 +13,6 @@ $result = pg_query($query) or die('Échec de la requête : ' . pg_last_error());
 while ($data_Departement[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
 array_pop($data_Departement);
 
-
-
-
-$query = "";
 
 if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email'], $_POST['iddep'])) {
     echo "bonjour";
@@ -68,19 +64,19 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['daten
     </div>
     <div class="form-group">
         <label for="nom">Nom</label>
-        <input type="text" class="form-control" id="nom" name="nom" placeholder="Dujardin">
+        <input type="text" class="form-control" id="nom" name="nom" placeholder="Dujardin" required="required">
     </div>
     <div class="form-group">
         <label for="prenom">Prénom</label>
-        <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Jean">
+        <input type="text" class="form-control" id="prenom" name="prenom" placeholder="Jean" required="required">
     </div>
     <div class="form-group ">
         <label for="numss">Numéro de sécurité social</label>
-        <input type="text" class="form-control" id="numss" name="numss" placeholder="0123456789123">
+        <input type="text" class="form-control" id="numss" name="numss" placeholder="0123456789123" required="required">
     </div>
     <div class="form-group ">
         <label for="datenaissance">Date de naissance</label>
-        <input type="text" class="form-control" id="datenaissance" name="datenaissance" placeholder="2020-02-14">
+        <input type="text" class="form-control" id="datenaissance" name="datenaissance" placeholder="2020-02-14"required="required">
     </div>
     <div class="form-group">
         <label for="numtel">Numéro de téléphone</label>
@@ -95,8 +91,8 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['daten
         <input type="text" class="form-control" id="email" name="email" placeholder="truc@gmail.com">
     </div>
     <div class="form-group">
-        <label for="iddep">Numéro du Département</label>
-        <select id="iddep" name="iddep" class="form-control">
+        <label for="iddep">Département</label>
+        <select id="iddep" name="iddep" class="form-control" required="required">
             <?php
             // query SQL pour recuperer la liste des departements dans la base
             $query_result = pg_query($dbconn, "SELECT iddep, nomDep FROM departement;");

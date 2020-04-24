@@ -132,7 +132,7 @@ CREATE TABLE utilisateur (
   	nom VARCHAR(50) NOT NULL,
   	prenom VARCHAR(50) NOT NULL,
   	mail VARCHAR(250) NOT NULL,
-  	metier INTEGER NOT NULL, 
+  	metier INTEGER NOT NULL, -- 0 si medecin, 1 sinon
   	motdp VARCHAR(512) NOT NULL,
 	idhp INTEGER ,
   	CONSTRAINT iduser_pk PRIMARY KEY (iduser)
