@@ -119,7 +119,6 @@ while($data_hop[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data
 		}).then(function (val) {
             var etat = val
 		  if (etat == "fièvre et problèmes respiratoires" || etat == "inconscient") {
-              alert("TRUE")
             var data_hop = JSON.parse(document.getElementById("dom-target").textContent);
             console.log(data_hop);
             var data = {};
@@ -176,14 +175,23 @@ while($data_hop[] = pg_fetch_array($result, NULL, PGSQL_ASSOC)); array_pop($data
                 </h1>
             </div>
             <div class="col-lg-2" >
-                <a href="/ajouter_patient.php" style="float: right"><button type="button" class="btn btn-info">Ajouter un patient</button>  </a>
+              <a href="/ajouter_patient.php" style="float: right"><button type="button" class="btn btn-info">Ajouter un patient</button>  </a>
             </div>
-        </div>
+          </div>
+          
+          
+          <hr>
 
+          <?php 
+          $query_alert = "SELECT * FROM hopital WHERE idhp = {$_SESSION['idhp']};";
+          $result_alert = pg_query($query_alert) or die('Échec de la requête : ' . pg_last_error());
+          while($arr[] = pg_fetch_array($result_alert, NULL, PGSQL_ASSOC)); 
+          array_pop($arr);
+          if ($arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['placelibre']){
+            echo "<p>Attention : Le taux de remplissage de votre hôpital est critique.</p>";
+          }  
 
-        <hr>
-        <p>Vous pouvez sélectionner des dates pour afiner votre recherche.</p>
-
+          ?>
 
         <div class="row" style="width: 1000px; margin: auto;">
       <center>
