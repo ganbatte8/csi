@@ -3,10 +3,10 @@ include('includes/includes_theme/includes_up.php'); // initialise $dbconn et $re
 
 
 // $query2 : pour obtenir l'iddep du medecin connecte
-$query2 = "SELECT iddep FROM hopital WHERE idhp = " . $_SESSION['idhp'] . ";";
+/*$query2 = "SELECT iddep FROM hopital WHERE idhp = " . $_SESSION['idhp'] . ";";
 $result = pg_query($query2) or die('Échec de la requête : ' . pg_last_error());
 while ($iddep[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
-array_pop($iddep);
+array_pop($iddep);*/
 
 $query = "SELECT * FROM patient;";
 $checked['all'] = "checked";
@@ -156,7 +156,7 @@ $d4 = $d1 + $d2 + $d3;
 
 
 
-$queryGraphL = "SELECT * FROM historiqueetatp";
+$queryGraphL = "SELECT * FROM historiqueetatp WHERE historiqueetat='décédé'";
 $res = pg_query($queryGraphL) or die('Échec de la requête : ' . pg_last_error());
 while ($dataG[] = pg_fetch_array($res, NULL, PGSQL_ASSOC)); 
 array_pop($dataG);
@@ -166,14 +166,63 @@ $interval = 5;
 
 
 
+$resDataG = array();
+
+$tmpdate = date_create($dataG[0]['datehistorique']);
+$tmpDATE = $tmpdate->format('Y-m-d');
+$tmpNB = 0;
+
+foreach ($dataG as $data) {
+    $date = date_create($data['datehistorique']);
+    if (date_diff($date, $tmpdate)->format('%a') <= $interval) {
+        $tmpNB++;
+    } else {
+        $resDataG[$tmpDATE] = $tmpNB;
+        
+        $tmpdate = $date;
+        $tmpDATE = $date->format('Y-m-d');
+        $tmpNB = 1;
+    }
+}
+$resDataG[$tmpDATE] = $tmpNB;
+
+//print_r($resDataG);
+
+$minDATE = null;
+$maxDATE = null;
+
+foreach ($resDataG as $key => $d) {
+    if ($minDATE == null) {
+        $minDATE = $key;
+    }
+    if ($maxDATE == null) {
+        $maxDATE = $key;
+    }
+
+    if ($key > $maxDATE) {
+        $maxDATE = $key;
+    }
+
+    if ($key < $minDATE) {
+        $minDATE = $key;
+    }
+}
+
+/*
+$minDATE = "2020-01-01";
+$maxDATE = "2020-05-01";
+*/
 
 
+for ($i = 1; $i <= date_diff(date_create($maxDATE), date_create($minDATE))->format('%a'); $i++) {
+    if (!isset($resDataG[date_create($minDATE)->add(new DateInterval('P'.$i.'D'))->format('Y-m-d')])) {
+        $resDataG[date_create($minDATE)->add(new DateInterval('P'.$i.'D'))->format('Y-m-d')] = 0;
+    }
+}
 
+//print_r($resDataG);
 
-
-
-
-
+ksort($resDataG);
 
 
 
@@ -229,7 +278,14 @@ $interval = 5;
         </div>
 
 
-
+        <div class="row">
+            <div class="col-xl-12">
+                <div class="card mb-4">
+                    <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Graphique des morts nationaux par jours</div>
+                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
+                </div>
+            </div>
+        </div>
         
 
 
@@ -385,20 +441,7 @@ $interval = 5;
         </div>
 
 
-        <div class="row">
-            <div class="col-xl-6">
-                <div class="card mb-4">
-                    <div class="card-header"><i class="fas fa-chart-area mr-1"></i>Area Chart Example</div>
-                    <div class="card-body"><canvas id="myAreaChart" width="100%" height="40"></canvas></div>
-                </div>
-            </div>
-            <div class="col-xl-6">
-                <div class="card mb-4">
-                    <div class="card-header"><i class="fas fa-chart-bar mr-1"></i>Bar Chart Example</div>
-                    <div class="card-body"><canvas id="myBarChart" width="100%" height="40"></canvas></div>
-                </div>
-            </div>
-        </div>
+
 
 
         <!-- DataTables Example -->
@@ -486,8 +529,121 @@ include('includes/includes_theme/includes_down.php'); // free $dbconn et $result
 <script src="/includes/vendor/datatables/dataTables.bootstrap4.js"></script>
 
 
+
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
-<script src="./graphL.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#292b2c';
+
+// Area Chart Example
+var ctx = document.getElementById("myAreaChart");
+var myLineChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: [
+        <?php   
+            $tmpcmpt = 0;
+            foreach ($resDataG as $key => $d) {
+                $tmpcmpt++;
+                if (count($resDataG) == $tmpcmpt) {
+                    echo "\"".$key."\"";
+                } else {
+                    echo "\"".$key."\",";
+                }
+            }
+        ?>
+        /*"Mar 1", "Mar 2", "Mar 3", "Mar 4", "Mar 5", "Mar 6", "Mar 7", "Mar 8", "Mar 9", "Mar 10", "Mar 11", "Mar 12", "Mar 13"*/],
+    datasets: [{
+      label: "Morts",
+      lineTension: 0.3,
+      backgroundColor: "rgba(2,117,216,0.2)",
+      borderColor: "rgba(2,117,216,1)",
+      pointRadius: 5,
+      pointBackgroundColor: "rgba(2,117,216,1)",
+      pointBorderColor: "rgba(255,255,255,0.8)",
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: "rgba(2,117,216,1)",
+      pointHitRadius: 50,
+      pointBorderWidth: 2,
+      data: [
+        <?php
+            $tmpcmpt = 0;
+            foreach ($resDataG as $key => $d) {
+                $tmpcmpt++;
+                if (count($resDataG) == $tmpcmpt) {
+                    echo $d;
+                } else {
+                    echo $d.",";
+                }
+            }
+        ?>
+        /*10000, 30162, 26263, 18394, 18287, 28682, 31274, 33259, 25849, 24159, 32651, 31984, 38451*/],
+    }],
+  },
+  options: {
+    scales: {
+      xAxes: [{
+        time: {
+          unit: 'date'
+        },
+        gridLines: {
+          display: false
+        },
+        ticks: {
+          maxTicksLimit: 7
+        }
+      }],
+      yAxes: [{
+        ticks: {
+          min: 0,
+          max: 10,
+          maxTicksLimit: 5
+        },
+        gridLines: {
+          color: "rgba(0, 0, 0, .125)",
+        }
+      }],
+    },
+    legend: {
+      display: false
+    }
+  }
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- Demo scripts for this page-->
 <script src="/includes/js/demo/datatables-demo.js"></script>
