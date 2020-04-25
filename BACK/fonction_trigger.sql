@@ -302,7 +302,6 @@ enfin, si etatSante = decede alors etatSurveillance = mort.
 
 CREATE OR REPLACE FUNCTION forcer_coherence_surv_sante()
 	RETURNS TRIGGER AS $before_forcer_coherence_surv_sante$
-DECLARE
 BEGIN
 	IF (NEW.etatSante = 'aucun symptôme' AND NEW.etatSurveillance <> 'guéri' AND NEW.etatSurveillance <> 'quarantaine') THEN
 		RAISE EXCEPTION 'Operation % dans la table patient annulee : incoherence entre % et %', TG_OP, NEW.etatSante, NEW.etatSurveillance;
@@ -349,5 +348,111 @@ CREATE TRIGGER last_name_changes
 
 */
 
+/* la fonction handle_transformation_etatsante permet de traiter la modification de l'etat de sante d'un patient par un medecin de maniere
+	a mettre a jour de maniere coherente les 5 tables patient, historiqueetatp, hospitalisation, hopital, surveillance.
+*/
+CREATE OR REPLACE FUNCTION handle_transformation_etatsante(p_new_etatsante VARCHAR, p_numss BIGINT, p_idhp INTEGER) AS $$
+	-- p_idhp : id de l'hopital ou le patient doit eventuellement etre place. -1 si on ne designe aucun hopital.
+BEGIN
+    prev_etat_sante := SELECT etatsante FROM patient WHERE numss = p_numss;
+    prev_etat_surv := SELECT etatsurveillance FROM patient WHERE numss = p_numss;
+    peut_placer_hopital := (SELECT COUNT(*) FROM hopital WHERE idhp = p_idhp) = 1  AND (SELECT placelibre FROM hopital WHERE idhp = p_idhp) > 0;
+
+	-- cas (1)
+    IF prev_etatsante = 'aucun symptôme' THEN
+        IF p_new_etatsante IN ('aucun symptôme', 'fièvre') THEN
+            -- maj historiqueetatp, patient
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante WHERE numss = p_numss;
+        ELSIF p_new_etatsante IN ('fièvre et problèmes respiratoires', 'inconscient') AND peut_placer_hopital THEN
+            -- le patient doit etre hospitalise. maj de 5 tables : historiqueetatp, patient, hospitalisation, hopital, surveillance
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'hospitalisé' WHERE numss = p_numss;
+            INSERT INTO hospitalisation(idhp, numss, dateDebut, dateFin) VALUES (p_idhp, p_numss, CURRENT_TIMESTAMP, NULL);
+            UPDATE hopital SET placelibre = placelibre-1, placeoccupe = placeoccupe+1 WHERE idhp = p_idhp;
+            IF prev_etat_surv = 'guéri' THEN
+                INSERT INTO surveillance(datedebsurv, datefinsurv, numss) VALUES (CURRENT_TIMESTAMP, NULL, p_numss);
+            END IF;
+        ELSIF p_new_etatsante = 'décédé' THEN
+            -- maj historiqueetatp, patient, surveillance. Pas de maj de hopital ou hospitalisation car le patient n'est pas hospitalise
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'mort' WHERE numss = p_numss;
+            UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss = p_numss AND datedebsurv = NULL;
+        END IF;
+
+	-- cas (2)
+    ELSIF prev_etat_sante = 'fièvre' THEN
+        IF p_new_etatsante = 'aucun symptôme' THEN
+			-- Le patient arrete son hospitalisation et sa surveillance s'il etait hospitalise. maj potentielle des 5 tables.
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante WHERE numss = p_numss;
+			IF prev_etat_surv = 'hospitalisé' THEN
+				UPDATE hopital SET placelibre = placelibre+1, placeoccupe = placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
+				UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
+				UPDATE surveillance SET  = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
+			END IF;
+		ELSIF p_new_etatsante = 'fièvre' THEN
+			-- juste une insertion d'historiqueetatp
+			INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+		ELSIF p_new_etatsante IN ('fièvre et problèmes respiratoires', 'inconscient') THEN
+			-- hospitalisation si pas hospitalise. maj potentielle des 5 tables
+			IF (prev_etat_surv = 'hospitalisé') THEN
+            	INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            	UPDATE patient SET etatsante = p_new_etatsante WHERE numss = p_numss;
+			ELSIF (peut_placer_hopital) THEN
+            	INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            	UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'hospitalisé' WHERE numss = p_numss;
+            	INSERT INTO hospitalisation(idhp, numss, dateDebut, dateFin) VALUES (p_idhp, p_numss, CURRENT_TIMESTAMP, NULL);
+            	UPDATE hopital SET placelibre = placelibre-1, placeoccupe = placeoccupe+1 WHERE idhp = p_idhp;
+            	IF prev_etat_surv = 'guéri' THEN 
+					-- est-ce possible pour un patient "non surveille" d'avoir de la fievre ? en tout cas la contrainte statique entre etatsante et etatsurveillance ne l'exclut pas
+            	    INSERT INTO surveillance(datedebsurv, datefinsurv, numss) VALUES (CURRENT_TIMESTAMP, NULL, p_numss);
+            	END IF;
+			END IF;
+		ELSIF p_new_etatsante = 'décédé' THEN
+            -- maj historiqueetatp, patient, surveillance, hopital, hospitalisation 
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'mort' WHERE numss = p_numss;
+            UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss = p_numss AND datedebsurv = NULL;
+			UPDATE hopital SET placelibre = placelibre+1, placeoccupe=placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
+			UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
+		END IF;
+
+	-- cas (3)
+	ELSIF prev_etat_sante IN ('fièvre et problèmes respiratoires', 'inconscient') THEN
+		IF p_new_etatsante = 'aucun symptôme' THEN
+			-- le patient etait hospitalise. On arrete son hospitalisation et sa surveillance
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'guéri' WHERE numss = p_numss;
+			UPDATE hopital SET placelibre = placelibre+1, placeoccupe = placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
+			UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
+			UPDATE surveillance SET  = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
+		ELSIF p_new_etatsante IN ('fièvre', 'fièvre et problèmes respiratoires', 'inconscient') THEN
+			-- le patient reste hospitalise. maj historiqueetatp, patient.
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante WHERE numss = p_numss;
+		ELSIF p_new_etatsante = 'décédé' THEN
+            -- maj historiqueetatp, patient, surveillance, hopital, hospitalisation 
+            INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
+            UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'mort' WHERE numss = p_numss;
+            UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss = p_numss AND datedebsurv = NULL;
+			UPDATE hopital SET placelibre = placelibre+1, placeoccupe=placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
+			UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
+		END IF;
+	END IF;
+
+	-- cas (4) : si le patient etait decede alors on ne fait rien.
+END;
+$$ LANGUAGE plpgsql;
+
+				
+			
 
 
+
+			
+        ELSIF p_new_etatsante IN ('fièvre') THEN
+        ELSIF p_new_etatsante IN ('inconscient', 'fievre et problemes respiratoires') THEN
+		ELSE
+
+    ELSEIF

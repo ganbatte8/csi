@@ -32,6 +32,8 @@ fps --> f : rien de special
 fps --> i : rien de special
 fps --> d : deces
 
+i : traite de la meme maniere que fps
+
 d --> quoi que ce soit : impossible
 
 On peut aussi considerer le cas de l'insertion d'un patient quand il n'y a pas d'etatSante existant precedemment, ce qui donnerait 4 autres cas a considerer, mais on peut eventuellement forcer le fait qu'un patient insere demarre avec un etatSante qui est aucun symptome, et le medecin le modifie apres s'il le veut, selon les regles ci-dessus. 

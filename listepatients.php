@@ -16,7 +16,7 @@ $query = "SELECT * FROM patient;";
 $checked['all'] = "checked";
 $checked['dep'] = "";
 $checked['hop'] = "";
-if (isset($_POST['preselections'])) {
+if (isset($_POST['preselections'])) { // traitement des boutons radios pour choisir la liste des patients a surveiller
     switch ($_POST['preselections']) {
         case 'all':
             $checked['all'] = "checked";
@@ -34,17 +34,24 @@ if (isset($_POST['preselections'])) {
             break;
     }
 } else {
-    if (isset($_POST['idhp'])) {
-        if ($_POST['idhp'] != -1) {
-            $query5 = "update patient set etatsante = '$_POST[etat]', etatsurveillance = 'hospitalisé' where numss= $_POST[numss]";
-            $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
-            // ??? etatsante etatsurveillance ?
-            $query4 = "select inserer_patient_hopital($_POST[idhp],$_POST[numss]) ";
-            $result = pg_query($query4) or die('Échec de la requête : ' . pg_last_error());
-        } else {
-            $query5 = "update patient set etatsante = '$_POST[etat]' where numss= $_POST[numss]";
-            $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
-        }
+    if (isset($_POST['idhp'])) { // traitement d'une demande de modification d'un patient
+        // _POST['idhp'] == -1 ssi le medecin n'a pas eu a choisir un hopital.
+        // La fonction SQL prend ce cas en compte en testant si un hopital correspond a cet idhp.
+        $query_modif_patient = "SELECT handle_transformation_etatsante('$_POST[etat]', $POST[numss], $_POST[idhp])";
+        $result_modif = pg_query($query_etatsante) or die('Échec de la requête : ' . pg_last_error());
+
+
+        // if ($_POST['idhp'] != -1) { // cas ou le patient doit etre hospitalise et le medecin a choisi un hopital
+        //     $query4 = "UPDATE patient SET etatsante = '$_POST[etat]', etatsurveillance = 'hospitalisé' WHERE numss= $_POST[numss]";
+        //     $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
+        //     $query4 = "SELECT inserer_patient_hopital($_POST[idhp],$_POST[numss]) ";
+        //     $result = pg_query($query4) or die('Échec de la requête : ' . pg_last_error());
+        // } else {
+        //     // cas ou le medecin n'a pas eu a choisir un hopital. 
+        //     // La transformation de la base a effectuer est une fonction de la transformation de l'etat de sante du patient.
+        //     $query5 = "UPDATE patient SET etatsante = '$_POST[etat]' where numss= $_POST[numss]";
+        //     $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
+        // }
     }
 }
 
@@ -98,7 +105,7 @@ array_pop($data_hop);
         form.submit();
     }
 
-    function modifPatient(numss) {
+    function modifPatient(numss, etat_surveillance) {
         swal({
             title: 'MODIF ?',
             input: 'select',
@@ -116,7 +123,8 @@ array_pop($data_hop);
             cancelButtonText: "Annuler"
         }).then(function(val) {
             var etat = val
-            if (etat == "fièvre et problèmes respiratoires" || etat == "inconscient") {
+            // si le patient doit etre hospitalise alors on veut demander au medecin dans quel hopital on l'hospitalise.
+            if (etat_surveillance != 'hospitalisé' && (etat == "fièvre et problèmes respiratoires" || etat == "inconscient")) {     
                 var data_hop = JSON.parse(document.getElementById("dom-target").textContent);
                 console.log(data_hop);
                 var data = {};
@@ -132,7 +140,7 @@ array_pop($data_hop);
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Valider !',
                     cancelButtonText: "Annuler"
-                }).then(function(val2) { // d'ou vient val2 ?
+                }).then(function(val2) { 
                     post('/listepatients.php', {
                         idhp: val2,
                         etat: etat,
@@ -144,7 +152,7 @@ array_pop($data_hop);
                         'success'
                     )
                 });
-            } else {
+            } else {        // si le patient n'est pas a hospitaliser
                 post('/listepatients.php', {
                     idhp: -1,
                     etat: etat,
@@ -156,7 +164,7 @@ array_pop($data_hop);
                     'success'
                 )
             }
-        })
+        }) // fin de then(function(val){})
     }
 
 
@@ -298,7 +306,7 @@ array_pop($data_hop);
                                     <td><?= $d['email'] ?></td>
                                     <td><?= $d['iddep'] ?></td>
                                     <td>
-                                        <button onClick="javascript:modifPatient('<?= $d['numss'] ?>')" class="btn btn-primary" title="Modification du patient"> <i class="fas fa-pen-square"></i></i></button>
+                                        <button onClick="javascript:modifPatient('<?= $d['numss'] ?>', '<?= $d['etatsurveillance']?>')" class="btn btn-primary" title="Modification du patient"> <i class="fas fa-pen-square"></i></i></button>
                                         <?php
                                         if ($checked['hop'] == "checked") { ?>
                                         <button onClick="javascript:testD('<?= $d['numss'] ?>')" class="btn btn-warning" title="test"> <i class="fas fa-vial"></i></button>
