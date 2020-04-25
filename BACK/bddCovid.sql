@@ -118,7 +118,7 @@ CREATE TABLE hospitalisation(
     numss BIGINT NOT NULL,
     dateDebut TIMESTAMP NOT NULL,
     dateFin TIMESTAMP,
-    testcontamination VARCHAR(7) DEFAULT VALUE ('non effectué'), -- "positif" ou "négatif"
+    testcontamination VARCHAR(12) DEFAULT ('non effectué'), -- "positif" ou "négatif"
     CONSTRAINT hospitalisation_pk PRIMARY KEY (idHospitalisation),
 	CONSTRAINT dateDebut_post CHECK (dateDebut <= CURRENT_TIMESTAMP ),-- date de début est antérieure à la date d'aujourd'hui
 	CONSTRAINT dateFin_nNull_post CHECK (dateFin <= CURRENT_TIMESTAMP ) --date de fin est soit NULL soit antérieure à la date d'aujourd'hui

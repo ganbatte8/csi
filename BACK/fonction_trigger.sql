@@ -33,51 +33,51 @@ $body$
 
 --On modifie les informations relatives à un patient sauf son numéro de sécurité social 
 
-CREATE OR REPLACE FUNCTION modifier_patient(
-	p_numss BIGINT,
-	p_prenom VARCHAR,
-	p_nom VARCHAR,
-	p_etatSante VARCHAR,
-	p_etatSurveillance VARCHAR,
-	p_dateNaissance Date,
-	p_genre CHAR,
-	p_numTelephone NUMERIC,
-	p_adressep VARCHAR,
-	p_email VARCHAR)
-	RETURNS void 
-	LANGUAGE 'plpgsql'
-	AS $body$
-begin
-	UPDATE patient 
-	SET prenom = p_prenom,
-		nom = p_nom ,
-		etatSante = p_etatSante,
-		etatSurveillance = p_etatSurveillance,
-		dateNaissance = p_dateNaissance,
-		genre = p_genre,
-		numTelephone = p_numTelephone,
-		adressep = p_adressep,
-		email = p_email
-	WHERE numss = p_numss;	
-	IF (SELECT COUNT(*) FROM patient WHERE patient.numss = p_numss) = 0
-	THEN
-    	RAISE EXCEPTION 'pas de patient dans la base';
-	END IF;
-end;
-$body$
+-- CREATE OR REPLACE FUNCTION modifier_patient(
+-- 	p_numss BIGINT,
+-- 	p_prenom VARCHAR,
+-- 	p_nom VARCHAR,
+-- 	p_etatSante VARCHAR,
+-- 	p_etatSurveillance VARCHAR,
+-- 	p_dateNaissance Date,
+-- 	p_genre CHAR,
+-- 	p_numTelephone NUMERIC,
+-- 	p_adressep VARCHAR,
+-- 	p_email VARCHAR)
+-- 	RETURNS void 
+-- 	LANGUAGE 'plpgsql'
+-- 	AS $body$
+-- begin
+-- 	UPDATE patient 
+-- 	SET prenom = p_prenom,
+-- 		nom = p_nom ,
+-- 		etatSante = p_etatSante,
+-- 		etatSurveillance = p_etatSurveillance,
+-- 		dateNaissance = p_dateNaissance,
+-- 		genre = p_genre,
+-- 		numTelephone = p_numTelephone,
+-- 		adressep = p_adressep,
+-- 		email = p_email
+-- 	WHERE numss = p_numss;	
+-- 	IF (SELECT COUNT(*) FROM patient WHERE patient.numss = p_numss) = 0
+-- 	THEN
+--     	RAISE EXCEPTION 'pas de patient dans la base';
+-- 	END IF;
+-- end;
+-- $body$
 
-------------------------------------------------------------------------------------------------------------------
---on crée une surveillance pour un patient donné à l'insertion dans la base 
-CREATE OR REPLACE FUNCTION insertsurveillance_patient (numss BIGINT) 
-	RETURNS void 
-	LANGUAGE 'plpgsql'
-	AS $body$
-BEGIN
-INSERT INTO surveillance(datedebsurv,numss)
-VALUES (CURRENT_TIMESTAMP,numss);
-END;
+-- ------------------------------------------------------------------------------------------------------------------
+-- --on crée une surveillance pour un patient donné à l'insertion dans la base 
+-- CREATE OR REPLACE FUNCTION insertsurveillance_patient (numss BIGINT) 
+-- 	RETURNS void 
+-- 	LANGUAGE 'plpgsql'
+-- 	AS $body$
+-- BEGIN
+-- INSERT INTO surveillance(datedebsurv,numss)
+-- VALUES (CURRENT_TIMESTAMP,numss);
+-- END;
 
-$body$
+-- $body$
 
 ---------------------------------------------------------------------
 --on modifie la date de fin de surveillance 
@@ -103,7 +103,7 @@ CREATE OR REPLACE FUNCTION inserer_patient_hopital (p_idHp INTEGER, p_numss BIGI
 	LANGUAGE 'plpgsql'
 	AS $body$
 BEGIN
-	IF (SELECT capaciteMax FROM hopital WHERE idhp = p_idhp) > (SELECT placeOccupe FROM hopital WHERE idhp = p_idhp);
+	IF (SELECT capaciteMax FROM hopital WHERE idhp = p_idhp) > (SELECT placeOccupe FROM hopital WHERE idhp = p_idhp)
 	THEN
 		INSERT INTO hospitalisation(idhp,numss,datedebut)
 		VALUES(p_idHp, p_numss,CURRENT_TIMESTAMP);
@@ -167,46 +167,6 @@ BEGIN
 END;
 $body$
 
-
-------------------------------------------------------
--- on a cherche a implementer un trigger pour les alertes d'un hopital.
--- ce trigger se declencherait lorsque le nombre de places occupees d'un hopital se voit modifie.
--- probleme : un trigger s'exécute sur toutes les lignes de la table hopital. 
--- On obtiendrait donc une alerte pour tous les hopitaux en même temps.
--- Pas d'alternatives à FOR EACH ROW pour un trigger.
--- on fait les alertes côté application ?
-
-CREATE OR REPLACE FUNCTION trigger_tauxmax()
-	RETURNS TRIGGER AS $after_trigger_tauxmax$
-DECLARE
-nb1 INTEGER;
-nb2 INTEGER; 
-nb3 DECIMAL;
-taux DECIMAL;
-tot INTEGER;
-BEGIN
-	taux = NEW.tauxMax;
-	nb1 = NEW.placeoccupe;
-	nb2 = NEW.capacitemax;
-	nb3 = (nb1::DECIMAL / nb2);
-	tot = nb3 * 100;
-	RAISE NOTICE 'place occupe : % ', nb1;
-	RAISE NOTICE	'capacite max : % ', nb2;
-	RAISE NOTICE	'taux max : % ', taux;
-	RAISE NOTICE	'total nb3 = nb1/nb2 = %', nb3;
-	RAISE NOTICE	'taux actuel nb3*100 = % ',tot;
-	RAISE NOTICE 	'le taux est % ', taux;
-	IF(tot >= taux)
-	THEN
-		RAISE NOTICE 'Alerte : le taux maximal de l''hopital est atteint une alerte doit être lancé';
-	END IF;
-	RETURN NEW;
-END;
-$after_trigger_tauxmax$
-LANGUAGE plpgsql;
-
-CREATE TRIGGER after_trigger_tauxmax AFTER INSERT OR UPDATE
-ON Hopital EXECUTE PROCEDURE trigger_tauxmax();
 ---------------------------------------------------
 
 --etatSurveillance: un patient ne peut pas passer de “mort” à “guéri” (dynamique forte)
@@ -348,18 +308,29 @@ CREATE TRIGGER last_name_changes
 
 */
 
-/* la fonction handle_transformation_etatsante permet de traiter la modification de l'etat de sante d'un patient par un medecin de maniere
-	a mettre a jour de maniere coherente les 5 tables patient, historiqueetatp, hospitalisation, hopital, surveillance.
+
+---------------------------------------------
+
+
+/* 
+la fonction handle_transformation_etatsante permet de traiter la modification de l'etat de sante d'un patient par un medecin de maniere	a mettre a jour de maniere coherente les 5 tables patient, historiqueetatp, hospitalisation, hopital, surveillance.
 */
-CREATE OR REPLACE FUNCTION handle_transformation_etatsante(p_new_etatsante VARCHAR, p_numss BIGINT, p_idhp INTEGER) AS $$
+CREATE OR REPLACE FUNCTION handle_transformation_etatsante(p_new_etatsante VARCHAR, p_numss BIGINT, p_idhp INTEGER)
 	-- p_idhp : id de l'hopital ou le patient doit eventuellement etre place. -1 si on ne designe aucun hopital.
+	RETURNS void
+    LANGUAGE 'plpgsql'
+    AS $body$
+	DECLARE 
+	prev_etat_sante VARCHAR;
+	prev_etat_surv VARCHAR;
+	peut_placer_hopital BOOLEAN;
 BEGIN
-    prev_etat_sante := SELECT etatsante FROM patient WHERE numss = p_numss;
-    prev_etat_surv := SELECT etatsurveillance FROM patient WHERE numss = p_numss;
+    prev_etat_sante := (SELECT etatsante FROM patient WHERE numss = p_numss);
+    prev_etat_surv := (SELECT etatsurveillance FROM patient WHERE numss = p_numss);
     peut_placer_hopital := (SELECT COUNT(*) FROM hopital WHERE idhp = p_idhp) = 1  AND (SELECT placelibre FROM hopital WHERE idhp = p_idhp) > 0;
 
 	-- cas (1)
-    IF prev_etatsante = 'aucun symptôme' THEN
+    IF prev_etat_sante = 'aucun symptôme' THEN
         IF p_new_etatsante IN ('aucun symptôme', 'fièvre') THEN
             -- maj historiqueetatp, patient
             INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
@@ -389,7 +360,7 @@ BEGIN
 			IF prev_etat_surv = 'hospitalisé' THEN
 				UPDATE hopital SET placelibre = placelibre+1, placeoccupe = placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
 				UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
-				UPDATE surveillance SET  = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
+				UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
 			END IF;
 		ELSIF p_new_etatsante = 'fièvre' THEN
 			-- juste une insertion d'historiqueetatp
@@ -426,7 +397,7 @@ BEGIN
             UPDATE patient SET etatsante = p_new_etatsante, etatsurveillance = 'guéri' WHERE numss = p_numss;
 			UPDATE hopital SET placelibre = placelibre+1, placeoccupe = placeoccupe-1 WHERE idhp = (SELECT idhp FROM hospitalisation WHERE numss = p_numss AND datefin = NULL);
 			UPDATE hospitalisation SET datefin = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefin = NULL;
-			UPDATE surveillance SET  = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
+			UPDATE surveillance SET  datefinsurv = CURRENT_TIMESTAMP WHERE numss = p_numss AND datefinsurv = NULL;
 		ELSIF p_new_etatsante IN ('fièvre', 'fièvre et problèmes respiratoires', 'inconscient') THEN
 			-- le patient reste hospitalise. maj historiqueetatp, patient.
             INSERT INTO historiqueetatp(historiqueetat, datehistorique, numss) VALUES (p_new_etatsante, CURRENT_TIMESTAMP, p_numss);
@@ -443,16 +414,4 @@ BEGIN
 
 	-- cas (4) : si le patient etait decede alors on ne fait rien.
 END;
-$$ LANGUAGE plpgsql;
-
-				
-			
-
-
-
-			
-        ELSIF p_new_etatsante IN ('fièvre') THEN
-        ELSIF p_new_etatsante IN ('inconscient', 'fievre et problemes respiratoires') THEN
-		ELSE
-
-    ELSEIF
+$body$

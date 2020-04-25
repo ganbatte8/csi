@@ -37,8 +37,8 @@ if (isset($_POST['preselections'])) { // traitement des boutons radios pour choi
     if (isset($_POST['idhp'])) { // traitement d'une demande de modification d'un patient
         // _POST['idhp'] == -1 ssi le medecin n'a pas eu a choisir un hopital.
         // La fonction SQL prend ce cas en compte en testant si un hopital correspond a cet idhp.
-        $query_modif_patient = "SELECT handle_transformation_etatsante('$_POST[etat]', $POST[numss], $_POST[idhp])";
-        $result_modif = pg_query($query_etatsante) or die('Échec de la requête : ' . pg_last_error());
+        $query_modif_patient = "SELECT handle_transformation_etatsante('$_POST[etat]', $_POST[numss], $_POST[idhp])";
+        $result_modif = pg_query($query_modif_patient) or die('Échec de la requête : ' . pg_last_error());
 
 
         // if ($_POST['idhp'] != -1) { // cas ou le patient doit etre hospitalise et le medecin a choisi un hopital
