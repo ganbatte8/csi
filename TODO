@@ -2,17 +2,4 @@
 
 * stats
 
-* peut-on inserer plusieurs fois un patient dans un hopital ?
-
-* si l'etat sante d'un patient surveille non hospitalise n'a pas empire au bout de 15 jours alors retirer de l'etat surveillance et mettre son etat de surveillance a gueri
-
-* bug hunting modification etatsante patient
-empecher selection d'un hopital si le patient est deja hospitalise ?
-(si le patient doit rester hospitalise, la fonction ecrite ne change pas son hopital d'accueil meme si le medecin a precise un autre hopital.)
-doit on autoriser le medecin a inserer dans un hopital de son departement un patient d'un autre departement ?
-faire appel a la fonction sql handle_transformation_etatsante handle_transformation_etatsante(p_new_etatsante VARCHAR, p_numss BIGINT, p_idhp INTEGER)
-
-* arret de la surveillance d'un patient si son etat de sante n'a pas empire depuis 15 jours et qu'il n'a jamais ete hospitalise.
-
-* changer les boutons radio pour qu'ils n'affichent que les patients qui ont une surveillance non finie / une hospitalisation non finie.
-Lorsque la table est prepopulee, a-t-on des surveillances ? (pas avec les insert tous seuls;  devrait-on inserer des surveillances eventuellement finies pour chaque patient aussi ?)
+!!! * arret de la surveillance d'un patient si son etat de sante n'a pas empire depuis 15 jours et qu'il n'a jamais ete hospitalise.

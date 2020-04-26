@@ -25,7 +25,7 @@ THEN
 	VALUES (CURRENT_TIMESTAMP,p_numss);
 END IF;
 END;
-$body$
+$body$;
 
 
 
@@ -64,7 +64,7 @@ begin
     	RAISE EXCEPTION 'pas de patient dans la base';
 	END IF;
 end;
-$body$
+$body$;
 
 -- ------------------------------------------------------------------------------------------------------------------
 -- --on crée une surveillance pour un patient donné à l'insertion dans la base 
@@ -77,7 +77,7 @@ INSERT INTO surveillance(datedebsurv,numss)
 VALUES (CURRENT_TIMESTAMP,numss);
 END;
 
-$body$
+$body$;
 
 ---------------------------------------------------------------------
 --on modifie la date de fin de surveillance 
@@ -94,7 +94,7 @@ BEGIN
     	RAISE EXCEPTION 'pas de surveillance dans la base';
 	END IF;
 END;
-$body$
+$body$;
 
 --------------------------------------------------------------------------------------------
 -- On insère une hospitalisation et on met à jour les places de l'hopital concerné.
@@ -116,7 +116,7 @@ BEGIN
 		RAISE NOTICE 'On n'' a pas pu hospitaliser le patient : l''hopital est plein';
 	END IF;
 END;
-$body$
+$body$;
 
 ------------------------------------------------------------------------------
 --On date une fin d'hospitalisation d'un patient 
@@ -139,7 +139,7 @@ BEGIN
     		RAISE EXCEPTION 'Il n''y a de patient dans la base';
 		END IF;
 END;
-$body$
+$body$;
 
 ------------------------------------------------------------------
 --on modifie la capacité totale de l'hôpital
@@ -153,7 +153,7 @@ BEGIN
 			placeLibre = p_newcapacite - placeOccupe
 		WHERE Hopital.idHp = p_idHp;
 END;
-$body$
+$body$;
 -----------------------------------------------------------
 --modification le seuil de contamination par département
 CREATE OR REPLACE FUNCTION modif_seuil_contamine (p_idDepartement INTEGER, nouveau_seuil INTEGER)
@@ -165,7 +165,7 @@ BEGIN
 	SET seuilPersContamine = nouveau_seuil 
 	WHERE idDep = p_idDepartement;
 END;
-$body$
+$body$;
 
 ---------------------------------------------------
 
@@ -284,30 +284,6 @@ ON patient
 FOR EACH ROW EXECUTE PROCEDURE forcer_coherence_surv_sante();
 
 
-/*
-modele trigger (doc postgreSQL)
-
-CREATE OR REPLACE FUNCTION log_last_name_changes()
-  RETURNS trigger AS
-$BODY$
-BEGIN
-	IF NEW.last_name <> OLD.last_name THEN
-		 INSERT INTO employee_audits(employee_id,last_name,changed_on)
-		 VALUES(OLD.id,OLD.last_name,now());
-	END IF;
-
-	RETURN NEW;
-END;
-$BODY$
-
-CREATE TRIGGER last_name_changes
-  BEFORE UPDATE
-  ON employees
-  FOR EACH ROW
-  EXECUTE PROCEDURE log_last_name_changes();
-
-*/
-
 
 ---------------------------------------------
 
@@ -414,4 +390,4 @@ BEGIN
 
 	-- cas (4) : si le patient etait decede alors on ne fait rien.
 END;
-$body$
+$body$;

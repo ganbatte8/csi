@@ -1,7 +1,5 @@
 <?php
 
-$dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
-  or die('Connexion impossible : ' . pg_last_error());
 
 include('includes/includes_theme/includes_up.php');
 // initialise $dbconn et $result. Il faudra ensuite inclure includes_down.php
@@ -17,8 +15,7 @@ while ($data_Departement[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
 array_pop($data_Departement);
 
 
-if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email'], $_POST['iddep'])) {
-    echo "bonjour";
+if (isset($_POST['sendfeedback'], $_POST['numss'], $_POST['prenom'], $_POST['nom'], $_POST['datenaissance'], $_POST['genre'], $_POST['numtelephone'], $_POST['adressep'], $_POST['email'], $_POST['iddep'])) {
     echo $_POST['iddep'];
     if ($_POST['genre'] == 'Homme') {
         $_POST['genre'] = 'H';
@@ -32,7 +29,7 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['daten
         '{$_POST['prenom']}',
         '{$_POST['nom']}',
         '{$_POST['datenaissance']}',
-        '{$_post['genre']}',
+        '{$_POST['genre']}',
         {$_POST['numtelephone']},
         '{$_POST['adressep']}',
         '{$_POST['email']}',
