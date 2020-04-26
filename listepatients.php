@@ -39,19 +39,6 @@ if (isset($_POST['preselections'])) { // traitement des boutons radios pour choi
         // La fonction SQL prend ce cas en compte en testant si un hopital correspond a cet idhp.
         $query_modif_patient = "SELECT handle_transformation_etatsante('$_POST[etat]', $_POST[numss], $_POST[idhp])";
         $result_modif = pg_query($query_modif_patient) or die('Échec de la requête : ' . pg_last_error());
-
-
-        // if ($_POST['idhp'] != -1) { // cas ou le patient doit etre hospitalise et le medecin a choisi un hopital
-        //     $query4 = "UPDATE patient SET etatsante = '$_POST[etat]', etatsurveillance = 'hospitalisé' WHERE numss= $_POST[numss]";
-        //     $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
-        //     $query4 = "SELECT inserer_patient_hopital($_POST[idhp],$_POST[numss]) ";
-        //     $result = pg_query($query4) or die('Échec de la requête : ' . pg_last_error());
-        // } else {
-        //     // cas ou le medecin n'a pas eu a choisir un hopital. 
-        //     // La transformation de la base a effectuer est une fonction de la transformation de l'etat de sante du patient.
-        //     $query5 = "UPDATE patient SET etatsante = '$_POST[etat]' where numss= $_POST[numss]";
-        //     $result = pg_query($query5) or die('Échec de la requête : ' . pg_last_error());
-        // }
     }
 }
 
@@ -226,7 +213,10 @@ array_pop($data_hop);
     while ($arr[] = pg_fetch_array($result_alert, NULL, PGSQL_ASSOC));
     array_pop($arr);
     if ($arr[0]['placelibre'] == 0 || $arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['placelibre']) {
-        echo "<p>Attention : Le taux de remplissage de votre hôpital est critique.</p>";
+        echo "<p>Attention : Le taux de remplissage de votre hôpital ".$arr[0]['nom']." est critique.</p>";
+    }
+    if ($arr[0]['placelibre'] == 0){
+        echo "<p>Attention : Votre hôpital ".$arr[0]['nom']." est plein vous ne pouvez plus y ajouter de patient.</p>";
     }
 
     ?>
