@@ -2,12 +2,6 @@
 include('includes/includes_theme/includes_up.php'); // initialise $dbconn et $result. appeler includes_down.php apres
 
 
-// $query2 : pour obtenir l'iddep du medecin connecte
-/*$query2 = "SELECT iddep FROM hopital WHERE idhp = " . $_SESSION['idhp'] . ";";
-$result = pg_query($query2) or die('Échec de la requête : ' . pg_last_error());
-while ($iddep[] = pg_fetch_array($result, NULL, PGSQL_ASSOC));
-array_pop($iddep);*/
-
 $query = "SELECT * FROM patient;";
 $checked['all'] = "checked";
 $checked['dep'] = "";
