@@ -8,7 +8,7 @@ p_genre CHAR,
 p_numTelephone NUMERIC,
 p_adressep VARCHAR,
 p_email VARCHAR,
-iddep INTEGER
+p_iddep INTEGER
 )
 	RETURNS void 
 	LANGUAGE 'plpgsql'
@@ -33,51 +33,51 @@ $body$
 
 --On modifie les informations relatives à un patient sauf son numéro de sécurité social 
 
--- CREATE OR REPLACE FUNCTION modifier_patient(
--- 	p_numss BIGINT,
--- 	p_prenom VARCHAR,
--- 	p_nom VARCHAR,
--- 	p_etatSante VARCHAR,
--- 	p_etatSurveillance VARCHAR,
--- 	p_dateNaissance Date,
--- 	p_genre CHAR,
--- 	p_numTelephone NUMERIC,
--- 	p_adressep VARCHAR,
--- 	p_email VARCHAR)
--- 	RETURNS void 
--- 	LANGUAGE 'plpgsql'
--- 	AS $body$
--- begin
--- 	UPDATE patient 
--- 	SET prenom = p_prenom,
--- 		nom = p_nom ,
--- 		etatSante = p_etatSante,
--- 		etatSurveillance = p_etatSurveillance,
--- 		dateNaissance = p_dateNaissance,
--- 		genre = p_genre,
--- 		numTelephone = p_numTelephone,
--- 		adressep = p_adressep,
--- 		email = p_email
--- 	WHERE numss = p_numss;	
--- 	IF (SELECT COUNT(*) FROM patient WHERE patient.numss = p_numss) = 0
--- 	THEN
---     	RAISE EXCEPTION 'pas de patient dans la base';
--- 	END IF;
--- end;
--- $body$
+CREATE OR REPLACE FUNCTION modifier_patient(
+	p_numss BIGINT,
+	p_prenom VARCHAR,
+	p_nom VARCHAR,
+	p_etatSante VARCHAR,
+	p_etatSurveillance VARCHAR,
+	p_dateNaissance Date,
+	p_genre CHAR,
+	p_numTelephone NUMERIC,
+	p_adressep VARCHAR,
+	p_email VARCHAR)
+	RETURNS void 
+	LANGUAGE 'plpgsql'
+	AS $body$
+begin
+	UPDATE patient 
+	SET prenom = p_prenom,
+		nom = p_nom ,
+		etatSante = p_etatSante,
+		etatSurveillance = p_etatSurveillance,
+		dateNaissance = p_dateNaissance,
+		genre = p_genre,
+		numTelephone = p_numTelephone,
+		adressep = p_adressep,
+		email = p_email
+	WHERE numss = p_numss;	
+	IF (SELECT COUNT(*) FROM patient WHERE patient.numss = p_numss) = 0
+	THEN
+    	RAISE EXCEPTION 'pas de patient dans la base';
+	END IF;
+end;
+$body$
 
 -- ------------------------------------------------------------------------------------------------------------------
 -- --on crée une surveillance pour un patient donné à l'insertion dans la base 
--- CREATE OR REPLACE FUNCTION insertsurveillance_patient (numss BIGINT) 
--- 	RETURNS void 
--- 	LANGUAGE 'plpgsql'
--- 	AS $body$
--- BEGIN
--- INSERT INTO surveillance(datedebsurv,numss)
--- VALUES (CURRENT_TIMESTAMP,numss);
--- END;
+CREATE OR REPLACE FUNCTION insertsurveillance_patient (numss BIGINT) 
+	RETURNS void 
+	LANGUAGE 'plpgsql'
+	AS $body$
+BEGIN
+INSERT INTO surveillance(datedebsurv,numss)
+VALUES (CURRENT_TIMESTAMP,numss);
+END;
 
--- $body$
+$body$
 
 ---------------------------------------------------------------------
 --on modifie la date de fin de surveillance 

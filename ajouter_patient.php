@@ -1,5 +1,8 @@
 <?php
 
+$dbconn = pg_connect("host=localhost dbname=projet user=postgres password='Miage123'")
+  or die('Connexion impossible : ' . pg_last_error());
+
 include('includes/includes_theme/includes_up.php');
 // initialise $dbconn et $result. Il faudra ensuite inclure includes_down.php
 
@@ -24,7 +27,6 @@ if (isset($_POST['sendfeedback'], $_POST['prenom'], $_POST['nom'], $_POST['daten
     } elseif ($_POST['genre'] == 'Autre') {
         $_POST['genre'] = 'A';
     }
-    // $query =  "INSERT INTO patient(numss, prenom, nom, etatsante, etatsurveillance, datenaissance, genre, numtelephone, adressep, email, iddep) VALUES ( {$_POST['numss']}, '{$_POST['prenom']}', '{$_POST['nom']}', 'aucun symptôme','quarantaine', '{$_POST['datenaissance']}', '{$_POST['genre']}', {$_POST['numtelephone']}, '{$_POST['adressep']}', '{$_POST['email']}','{$_POST['iddep']}');";
     $query = "SELECT ajouter_patient (
         {$_POST['numss']},
         '{$_POST['prenom']}',
