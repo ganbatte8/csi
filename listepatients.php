@@ -212,7 +212,7 @@ array_pop($data_hop);
     $result_alert = pg_query($query_alert) or die('Échec de la requête : ' . pg_last_error());
     while ($arr[] = pg_fetch_array($result_alert, NULL, PGSQL_ASSOC));
     array_pop($arr);
-    if ($arr[0]['placelibre'] == 0 || $arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['placelibre']) {
+    if ($arr[0]['capacitemax'] == 0 || $arr[0]['tauxmax'] <= 100 * $arr[0]['placeoccupe'] / $arr[0]['capacitemax']) {
         echo "<p>Attention : Le taux de remplissage de votre hôpital ".$arr[0]['nom']." est critique.</p>";
     }
     if ($arr[0]['placelibre'] == 0){

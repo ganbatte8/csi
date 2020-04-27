@@ -31,14 +31,17 @@ $body$;
 
 -----------------------------------------------------------------------------------------
 
---On modifie les informations relatives à un patient sauf son numéro de sécurité social 
+-- Implementation d'une fonction postgreSQL pour modifier les informations de contact relatives à un patient.
+
+-- On suppose que le numero de securite de social est definitf, et donc on ne le modifie pas.
+
+-- On ne veut pas modifier les etats de sante et de surveillance d'un patient via cette fonction.
+-- Ce role serait plutot rempli par la fonction handle_transformation_etatsante, qui modifie jusqu'a 5 tables differentes.
 
 CREATE OR REPLACE FUNCTION modifier_patient(
 	p_numss BIGINT,
 	p_prenom VARCHAR,
 	p_nom VARCHAR,
-	p_etatSante VARCHAR,
-	p_etatSurveillance VARCHAR,
 	p_dateNaissance Date,
 	p_genre CHAR,
 	p_numTelephone NUMERIC,
@@ -51,8 +54,6 @@ begin
 	UPDATE patient 
 	SET prenom = p_prenom,
 		nom = p_nom ,
-		etatSante = p_etatSante,
-		etatSurveillance = p_etatSurveillance,
 		dateNaissance = p_dateNaissance,
 		genre = p_genre,
 		numTelephone = p_numTelephone,

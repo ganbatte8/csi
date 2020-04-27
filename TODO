@@ -1,5 +1,6 @@
 * alerte departement ?? + infos hopital de l'utilisateur
 
+* insertions initiales des patients a surveiller : appeler la fonction qui cree une surveillance a chaque fois ? (fait, non teste)
+
 * stats
 
-!!! * arret de la surveillance d'un patient si son etat de sante n'a pas empire depuis 15 jours et qu'il n'a jamais ete hospitalise.
