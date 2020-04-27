@@ -149,7 +149,7 @@ CREATE OR REPLACE FUNCTION modifier_capacite_hopital (p_idHp INTEGER, p_newcapac
     LANGUAGE 'plpgsql'
     AS $body$
 BEGIN
-	IF (p_newcapacite > (SELECT placeOccupe FROM hopital WHERE hopital.idhp = p_idhp))
+	IF (p_newcapacite > (SELECT placeOccupe FROM hopital WHERE hopital.idhp = p_idhp)) THEN
 		UPDATE Hopital 	SET capaciteMax = p_newcapacite, placeLibre = p_newcapacite - placeOccupe 
 		WHERE Hopital.idHp = p_idHp;
 	END IF;
