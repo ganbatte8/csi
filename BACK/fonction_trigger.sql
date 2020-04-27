@@ -148,10 +148,10 @@ CREATE OR REPLACE FUNCTION modifier_capacite_hopital (p_idHp INTEGER, p_newcapac
     LANGUAGE 'plpgsql'
     AS $body$
 BEGIN
-		UPDATE Hopital 
-		SET capaciteMax = p_newcapacite,
-			placeLibre = p_newcapacite - placeOccupe
+	IF (p_newcapacite > (SELECT placeOccupe FROM hopital WHERE hopital.idhp = p_idhp))
+		UPDATE Hopital 	SET capaciteMax = p_newcapacite, placeLibre = p_newcapacite - placeOccupe 
 		WHERE Hopital.idHp = p_idHp;
+	END IF;
 END;
 $body$;
 -----------------------------------------------------------
@@ -448,13 +448,31 @@ END;
 $body$;
 
 
--- on peut alors implementer la fonction a appeler pour dater les fins de quarantaines :
+-- on peut alors implementer la fonction a appeler pour dater les fins de quarantaines et mettre a jour les nouveaux etats de surveillance de la table patient :
 CREATE OR REPLACE FUNCTION dater_fin_quarantaines()
 	RETURNS void
 	LANGUAGE 'plpgsql'
 	AS $body$
 BEGIN
 	UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss IN( 
+		-- numss des patients en quarantaine qui n'ont pas ete hospitalise depuis au moins 15 jours,
+		-- qui ont un historiqueetatp qui date d'au moins 15 jours,
+		-- qui ont une table historiqueetatp monotone sur les 15 derniers jours.
+		SELECT numss FROM patient,historiqueetatp
+		JOIN ON patient.numss = historiqueetatp.numss
+		WHERE etatsurveillance = 'quarantaine' AND numss IN (
+			-- numss des patients qui n'ont pas d'hospitalisation en cours et qui n'ont pas ete hospitalise ces 15 derniers jours
+			SELECT DISTINCT numss FROM patient,hospitalisation LEFT JOIN ON patient.numss = hospitalisation.numss 
+			WHERE hospitalisation.datedebut = NULL 
+			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > interval '15 days')
+
+			INTERSECT
+			--numss des patients qui ont un historiqueetap qui date d'au moins 15 jours:
+			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
+		)
+		AND historique_est_monotone(numss);
+	);
+	UPDATE patient SET etatsurveillance = 'guéri' WHERE numss IN ( 
 		-- numss des patients en quarantaine qui n'ont pas ete hospitalise depuis au moins 15 jours,
 		-- qui ont un historiqueetatp qui date d'au moins 15 jours,
 		-- qui ont une table historiqueetatp monotone sur les 15 derniers jours.
