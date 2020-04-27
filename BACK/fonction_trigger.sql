@@ -391,3 +391,86 @@ BEGIN
 	-- cas (4) : si le patient etait decede alors on ne fait rien.
 END;
 $body$;
+
+
+
+
+-------------------------------------
+-- dater la fin des quarantaines apres 15 jours.
+-- on veut dater les fins de surveillances pour les patients qui sont en quarantaine depuis 15 jours et dont l'etat de sante n'a pas empire depuis 15 jours.
+
+-- on implemente d'abord une fonction qui renvoie un booleen pour verifier si l'historique d'etat d'un patient est "monotone croissant" sur les 15 derniers jours.
+CREATE OR REPLACE FUNCTION historique_est_monotone(p_numss BIGINT)
+	RETURNS BOOLEAN
+	LANGUAGE 'plpgsql'
+	AS $body$
+BEGIN
+-- on suppose que l'on puisse obtenir la table d'historiqueetatp d'un patient donne (par p_numss) sur les 15 derniers jours.
+-- On cherche a verifier la monotonie croissante d'une telle table avec une colonne de dates (datehistorique) et une colonne d'entiers (basee sur historiqueetat):
+RETURN (
+	SELECT CASE WHEN COUNT(*) = 0 THEN TRUE ELSE FALSE END AS IsMonotone
+	FROM (
+		-- table triee par datehistorique, numerotee par une colonne RowNum dans l'ordre croissant
+	    SELECT ROW_NUMBER() OVER (ORDER BY datehistorique) AS RowNum, datehistorique
+	    FROM 
+			-- pour un patient avec un numss donne (p_numss), comment avoir sa table d'historique d'etat de sante sur les 15 derniers jours ?
+			(SELECT datehistorique,
+				CASE
+					when historiqueetat = 'décédé' then 0
+					when historiqueetat = 'inconscient' then 1
+					when historiqueetat = 'fièvre et problèmes respiratoires' then 2
+					when historiqueetat = 'fièvre' then 3
+					when historiqueetat = 'aucun symptôme' then 4
+				END
+				AS historiqueetat_transforme
+				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= '15 days'
+			)
+	) T1 INNER JOIN (
+		-- table triee par historiqueetat, numerotee par une colonne RowNum dans l'ordre croissant
+	    SELECT ROW_NUMBER() OVER (ORDER BY historiqueetat_transforme) AS RowNum, historiqueetat
+	    FROM 
+			-- pour un patient avec un numss donne (p_numss), comment avoir sa table d'historique d'etat de sante sur les 15 derniers jours ?
+			(SELECT datehistorique,
+				CASE
+					when historiqueetat = 'décédé' then 0
+					when historiqueetat = 'inconscient' then 1
+					when historiqueetat = 'fièvre et problèmes respiratoires' then 2
+					when historiqueetat = 'fièvre' then 3
+					when historiqueetat = 'aucun symptôme' then 4
+				END
+				AS historiqueetat_transforme
+				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= '15 days'
+			)
+	) T2 ON T1.RowNum = T2.RowNum -- jointure sur la numerotation. Il y a donc monotonie croissante ssi aucune ligne est telle que ... 
+	WHERE T1.historiqueetat_transforme <> T2.historiqueetat_transforme;
+);
+END;
+$body$;
+
+
+-- on peut alors implementer la fonction a appeler pour dater les fins de quarantaines :
+CREATE OR REPLACE FUNCTION dater_fin_quarantaines()
+	RETURNS void
+	LANGUAGE 'plpgsql'
+	AS $body$
+BEGIN
+	UPDATE surveillance SET datefinsurv = CURRENT_TIMESTAMP WHERE numss IN( 
+		-- numss des patients en quarantaine qui n'ont pas ete hospitalise depuis au moins 15 jours,
+		-- qui ont un historiqueetatp qui date d'au moins 15 jours,
+		-- qui ont une table historiqueetatp monotone sur les 15 derniers jours.
+		SELECT numss FROM patient,historiqueetatp
+		JOIN ON patient.numss = historiqueetatp.numss
+		WHERE etatsurveillance = 'quarantaine' AND numss IN (
+			-- numss des patients qui n'ont pas d'hospitalisation en cours et qui n'ont pas ete hospitalise ces 15 derniers jours
+			SELECT DISTINCT numss FROM patient,hospitalisation LEFT JOIN ON patient.numss = hospitalisation.numss 
+			WHERE hospitalisation.datedebut = NULL 
+			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > '15 days')
+
+			INTERSECT
+			--numss des patients qui ont un historiqueetap qui date d'au moins 15 jours:
+			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > '15 days'
+		)
+		AND historique_est_monotone(numss);
+	);
+END;
+$body$;
