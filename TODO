@@ -4,3 +4,19 @@
 
 * stats
 
+========================
+DEMO
+
+(1) inscription
+(2) connexion (en tant que medecin du CHRU)
+(2a) deconnexion 
+(3)redirection vers page d'erreur se connecter en tant que représentant et aller sur localhost.listepatient.php 
+(4)reconnexion en tant que medecin
+(5) liste patients, cliquer sur les boutons radios
+(6) ajouter un patient et montrer résultat dans la base 
+(7) modification etat sante avec hospitalisation montrer dans la base
+(7a) modification etat sante sans hospitalisation montrer dans la base 
+(7b) montrer un cas ou l'on n'effectue pas la modification (e.g. de 'decede' vers un autre etat)
+(8) alerte taux hopital (CHRU devrait avoir une faible capacite)
+(9) test contamination montrer dans la base 
+(10) stats tester différentes combinaison de boutons
