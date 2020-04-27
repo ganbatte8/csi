@@ -423,7 +423,7 @@ RETURN (
 					when historiqueetat = 'aucun symptôme' then 4
 				END
 				AS historiqueetat_transforme
-				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= '15 days'
+				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= interval '15 days'
 			)
 	) T1 INNER JOIN (
 		-- table triee par historiqueetat, numerotee par une colonne RowNum dans l'ordre croissant
@@ -439,7 +439,7 @@ RETURN (
 					when historiqueetat = 'aucun symptôme' then 4
 				END
 				AS historiqueetat_transforme
-				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= '15 days'
+				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= interval '15 days'
 			)
 	) T2 ON T1.RowNum = T2.RowNum -- jointure sur la numerotation. Il y a donc monotonie croissante ssi aucune ligne est telle que ... 
 	WHERE T1.historiqueetat_transforme <> T2.historiqueetat_transforme;
@@ -464,11 +464,11 @@ BEGIN
 			-- numss des patients qui n'ont pas d'hospitalisation en cours et qui n'ont pas ete hospitalise ces 15 derniers jours
 			SELECT DISTINCT numss FROM patient,hospitalisation LEFT JOIN ON patient.numss = hospitalisation.numss 
 			WHERE hospitalisation.datedebut = NULL 
-			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > '15 days')
+			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > interval '15 days')
 
 			INTERSECT
 			--numss des patients qui ont un historiqueetap qui date d'au moins 15 jours:
-			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > '15 days'
+			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
 		)
 		AND historique_est_monotone(numss);
 	);
