@@ -425,7 +425,7 @@ RETURN (
 				END
 				AS historiqueetat_transforme
 				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= interval '15 days'
-			)
+			) AS alias1
 	) T1 INNER JOIN (
 		-- table triee par historiqueetat, numerotee par une colonne RowNum dans l'ordre croissant
 	    SELECT ROW_NUMBER() OVER (ORDER BY historiqueetat_transforme) AS RowNum, historiqueetat
@@ -441,12 +441,13 @@ RETURN (
 				END
 				AS historiqueetat_transforme
 				FROM historiqueetatp WHERE historiqueetatp.numss = p_numss AND CURRENT_TIMESTAMP - historiqueetatp.datehistorique <= interval '15 days'
-			)
+			) AS alias2
 	) T2 ON T1.RowNum = T2.RowNum -- jointure sur la numerotation. Il y a donc monotonie croissante ssi aucune ligne est telle que ... 
-	WHERE T1.historiqueetat_transforme <> T2.historiqueetat_transforme;
+	WHERE T1.historiqueetat_transforme <> T2.historiqueetat_transforme
 );
 END;
 $body$;
+
 
 
 -- on peut alors implementer la fonction a appeler pour dater les fins de quarantaines et mettre a jour les nouveaux etats de surveillance de la table patient :
@@ -459,37 +460,37 @@ BEGIN
 		-- numss des patients en quarantaine qui n'ont pas ete hospitalise depuis au moins 15 jours,
 		-- qui ont un historiqueetatp qui date d'au moins 15 jours,
 		-- qui ont une table historiqueetatp monotone sur les 15 derniers jours.
-		SELECT numss FROM patient,historiqueetatp
-		JOIN ON patient.numss = historiqueetatp.numss
+		SELECT numss FROM patient
+		INNER JOIN historiqueetatp ON patient.numss = historiqueetatp.numss
 		WHERE etatsurveillance = 'quarantaine' AND numss IN (
 			-- numss des patients qui n'ont pas d'hospitalisation en cours et qui n'ont pas ete hospitalise ces 15 derniers jours
-			SELECT DISTINCT numss FROM patient,hospitalisation LEFT JOIN ON patient.numss = hospitalisation.numss 
+			SELECT DISTINCT numss FROM patient LEFT JOIN hospitalisation ON patient.numss = hospitalisation.numss 
 			WHERE hospitalisation.datedebut = NULL 
 			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > interval '15 days')
 
 			INTERSECT
 			--numss des patients qui ont un historiqueetap qui date d'au moins 15 jours:
-			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
-		)
-		AND historique_est_monotone(numss);
+			SELECT DISTINCT numss FROM patient INNER JOIN historiqueetatp ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
+		) 
+		AND historique_est_monotone(numss)
 	);
 	UPDATE patient SET etatsurveillance = 'guéri' WHERE numss IN ( 
 		-- numss des patients en quarantaine qui n'ont pas ete hospitalise depuis au moins 15 jours,
 		-- qui ont un historiqueetatp qui date d'au moins 15 jours,
 		-- qui ont une table historiqueetatp monotone sur les 15 derniers jours.
-		SELECT numss FROM patient,historiqueetatp
-		JOIN ON patient.numss = historiqueetatp.numss
+		SELECT numss FROM patient
+		INNER JOIN historiqueetatp ON patient.numss = historiqueetatp.numss
 		WHERE etatsurveillance = 'quarantaine' AND numss IN (
 			-- numss des patients qui n'ont pas d'hospitalisation en cours et qui n'ont pas ete hospitalise ces 15 derniers jours
-			SELECT DISTINCT numss FROM patient,hospitalisation LEFT JOIN ON patient.numss = hospitalisation.numss 
+			SELECT DISTINCT numss FROM patient LEFT JOIN hospitalisation ON patient.numss = hospitalisation.numss 
 			WHERE hospitalisation.datedebut = NULL 
 			OR (hospitalisation.datefin <> NULL AND CURRENT_TIMESTAMP - hospitalisation.datefin > interval '15 days')
 
 			INTERSECT
 			--numss des patients qui ont un historiqueetap qui date d'au moins 15 jours:
-			SELECT DISTINCT numss FROM patient,historiqueetatp JOIN ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
-		)
-		AND historique_est_monotone(numss);
+			SELECT DISTINCT numss FROM patient JOIN historiqueetatp ON patient.numss = historiqueetatp.numss WHERE CURRENT_TIMESTAMP - datehistorique > interval '15 days'
+		) 
+		AND historique_est_monotone(numss)
 	);
 END;
 $body$;
